@@ -1,0 +1,1440 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Scores en Hepatología</title>
+<meta name="description" content="Calculadoras de puntajes pronósticos y diagnósticos en hepatología. Sección Hepatología, Hospital Italiano de Buenos Aires.">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon-64.png" sizes="64x64" type="image/png">
+<link rel="icon" href="./icons/logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Scores Hep">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#F4F6F5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1413" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+</head>
+<body>
+<style>
+:root{
+  --paper:#F4F6F5;
+  --surface:#FFFFFF;
+  --surface-2:#EAEFED;
+  --ink:#141C1B;
+  --ink-2:#566764;
+  --ink-3:#879794;
+  --rule:#D5DDDA;
+  --rule-strong:#B4C0BD;
+  --accent:#0E5257;
+  --accent-soft:#DDEBEA;
+  --ok:#2C6A4E;
+  --warn:#87610F;
+  --crit:#94382C;
+  --shadow:0 1px 2px rgba(20,28,27,.05), 0 8px 24px -18px rgba(20,28,27,.35);
+
+  --sans:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --serif:"Spectral", Georgia, "Times New Roman", serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1413;
+    --surface:#161D1C;
+    --surface-2:#1E2726;
+    --ink:#E6ECEA;
+    --ink-2:#9BACA9;
+    --ink-3:#75857f;
+    --rule:#293432;
+    --rule-strong:#3C4A47;
+    --accent:#6BC5C6;
+    --accent-soft:#16302F;
+    --ok:#78C89C;
+    --warn:#D6B063;
+    --crit:#E4907F;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -18px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1413;
+  --surface:#161D1C;
+  --surface-2:#1E2726;
+  --ink:#E6ECEA;
+  --ink-2:#9BACA9;
+  --ink-3:#75857f;
+  --rule:#293432;
+  --rule-strong:#3C4A47;
+  --accent:#6BC5C6;
+  --accent-soft:#16302F;
+  --ok:#78C89C;
+  --warn:#D6B063;
+  --crit:#E4907F;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -18px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---------- shell ---------- */
+.page{max-width:1200px;margin:0 auto;padding:0 22px 72px}
+
+.masthead{
+  border-bottom:1px solid var(--rule);
+  padding:34px 0 22px;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px 32px;
+}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin:0 0 8px;
+}
+h1{
+  font-family:var(--serif);
+  font-weight:600;
+  font-size:clamp(28px,4vw,40px);
+  line-height:1.1;
+  letter-spacing:-.01em;
+  margin:0;
+  text-wrap:balance;
+}
+.standfirst{
+  margin:10px 0 0;
+  max-width:58ch;
+  color:var(--ink-2);
+  font-size:15px;
+}
+.brand{display:flex;gap:18px;align-items:flex-start}
+.mark{flex:0 0 auto;width:54px;height:54px;margin-top:4px}
+.mark svg{display:block;width:100%;height:100%;border-radius:13px;box-shadow:0 0 0 1px var(--rule-strong)}
+.masthead-side{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+.masthead-note{
+  font-size:12.5px;
+  color:var(--ink-2);
+  max-width:30ch;
+  border-left:2px solid var(--rule-strong);
+  padding-left:12px;
+  line-height:1.45;
+}
+.install{
+  appearance:none;
+  font:inherit;
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--accent);
+  background:var(--surface);
+  border:1px solid var(--accent);
+  border-radius:3px;
+  padding:7px 14px;
+  cursor:pointer;
+}
+.install:hover{background:var(--accent-soft)}
+.install:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.layout{
+  display:grid;
+  grid-template-columns:246px minmax(0,1fr);
+  gap:38px;
+  align-items:start;
+  padding-top:28px;
+}
+
+/* ---------- index ---------- */
+.index{position:sticky;top:16px}
+.search{
+  width:100%;
+  font:inherit;
+  font-size:13.5px;
+  color:var(--ink);
+  background:var(--surface);
+  border:1px solid var(--rule-strong);
+  border-radius:3px;
+  padding:8px 10px;
+  margin-bottom:18px;
+}
+.search::placeholder{color:var(--ink-3)}
+.idx-group{margin-bottom:18px}
+.idx-group h2{
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  margin:0 0 6px;
+  font-weight:500;
+}
+.idx-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.idx-btn{
+  appearance:none;
+  width:100%;
+  text-align:left;
+  font:inherit;
+  font-size:13.5px;
+  color:var(--ink-2);
+  background:none;
+  border:0;
+  border-left:2px solid transparent;
+  padding:4px 0 4px 10px;
+  cursor:pointer;
+  line-height:1.35;
+}
+.idx-btn:hover{color:var(--ink)}
+.idx-btn[aria-current="true"]{
+  color:var(--ink);
+  font-weight:600;
+  border-left-color:var(--accent);
+}
+.idx-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+
+/* ---------- calculator ---------- */
+.calc-head{margin-bottom:22px}
+.calc-kicker{
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  margin:0 0 6px;
+}
+.calc-head h2{
+  font-family:var(--serif);
+  font-weight:600;
+  font-size:26px;
+  line-height:1.15;
+  margin:0;
+  text-wrap:balance;
+}
+.calc-sub{margin:8px 0 0;color:var(--ink-2);font-size:14px;max-width:64ch}
+
+.calc-body{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);
+  gap:34px;
+  align-items:start;
+}
+
+/* inputs */
+.inputs{display:flex;flex-direction:column;gap:0}
+.section-label{
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  padding-bottom:8px;
+  border-bottom:1px solid var(--rule);
+  margin-bottom:4px;
+}
+.field{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 132px;
+  gap:12px;
+  align-items:center;
+  padding:9px 0;
+  border-bottom:1px solid var(--rule);
+}
+.field label{font-size:13.5px;line-height:1.3}
+.field .unit{
+  display:block;
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--ink-3);
+  margin-top:1px;
+}
+.field input, .field select{
+  width:100%;
+  font-family:var(--mono);
+  font-size:13.5px;
+  font-variant-numeric:tabular-nums;
+  color:var(--ink);
+  background:var(--surface);
+  border:1px solid var(--rule-strong);
+  border-radius:3px;
+  padding:6px 8px;
+  text-align:right;
+}
+.field select{font-family:var(--sans);text-align:left;font-size:12.5px}
+.field.wide{grid-template-columns:minmax(0,1fr);gap:6px}
+.field.wide label{font-size:13.5px}
+.field input:focus-visible, .field select:focus-visible, .search:focus-visible{
+  outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);
+}
+.how{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column}
+.how li{padding:10px 0;border-bottom:1px solid var(--rule)}
+.how b{display:block;font-weight:600;font-size:13.5px;margin-bottom:2px}
+.how span{font-size:13px;color:var(--ink-2);line-height:1.45}
+.formula{
+  font-family:var(--mono);
+  font-size:13px;
+  line-height:1.65;
+  color:var(--ink);
+  background:var(--surface-2);
+  border-radius:3px;
+  padding:12px 14px;
+  margin:0;
+  overflow-x:auto;
+}
+.example-flag{
+  font-size:12px;
+  color:var(--ink-2);
+  margin:12px 0 0;
+  font-style:italic;
+}
+
+/* results */
+.results{display:flex;flex-direction:column;gap:16px}
+
+.value-block{
+  background:var(--surface);
+  border:1px solid var(--rule-strong);
+  border-radius:4px;
+  box-shadow:var(--shadow);
+  padding:18px 20px 16px;
+}
+.block-label{
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  margin:0 0 10px;
+}
+.value-line{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.value-num{
+  font-family:var(--mono);
+  font-weight:500;
+  font-variant-numeric:tabular-nums;
+  font-size:46px;
+  line-height:1;
+  letter-spacing:-.02em;
+  color:var(--accent);
+}
+.value-num.is-text{font-size:28px;font-family:var(--serif);font-weight:600;letter-spacing:0}
+.value-unit{font-size:13px;color:var(--ink-2)}
+.detail{
+  list-style:none;
+  margin:14px 0 0;
+  padding:12px 0 0;
+  border-top:1px solid var(--rule);
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.detail li{display:flex;justify-content:space-between;gap:16px;font-size:13px;color:var(--ink-2)}
+.detail b{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums;color:var(--ink)}
+.notes{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.notes li{font-size:12px;color:var(--warn);line-height:1.4}
+
+.panel{border-top:1px solid var(--rule-strong);padding-top:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+.scroll-x{overflow-x:auto}
+th{
+  font-family:var(--mono);
+  font-weight:500;
+  font-size:10.5px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  text-align:left;
+  padding:0 10px 6px 0;
+  border-bottom:1px solid var(--rule);
+  white-space:nowrap;
+}
+td{
+  padding:7px 10px 7px 0;
+  border-bottom:1px solid var(--rule);
+  vertical-align:top;
+  color:var(--ink-2);
+}
+td:first-child{color:var(--ink)}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody tr.active td{color:var(--ink);font-weight:600;background:var(--accent-soft)}
+tbody tr.active td:first-child{box-shadow:inset 2px 0 0 var(--accent)}
+tbody tr.active td:first-child{padding-left:10px}
+.src{
+  margin:12px 0 0;
+  font-size:12px;
+  color:var(--ink-3);
+  line-height:1.45;
+}
+.src cite{font-style:normal}
+.panel-note{margin:10px 0 0;font-size:12.5px;color:var(--ink-2);line-height:1.45}
+
+.disclaimer{
+  margin-top:44px;
+  padding-top:18px;
+  border-top:1px solid var(--rule);
+  font-size:12.5px;
+  color:var(--ink-2);
+  max-width:78ch;
+  line-height:1.55;
+}
+.disclaimer strong{color:var(--ink);font-weight:600}
+
+@media (max-width:880px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:26px}
+  .index{position:static}
+  .calc-body{grid-template-columns:minmax(0,1fr);gap:26px}
+  .idx-list{flex-direction:row;flex-wrap:wrap;gap:2px 4px}
+  .idx-btn{
+    width:auto;
+    border:1px solid var(--rule-strong);
+    border-radius:99px;
+    padding:3px 11px;
+    font-size:12.5px;
+  }
+  .idx-btn[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <rect width="512" height="512" rx="112" fill="#0E5257"/>
+          <path fill="#F4F6F5" d="M48 244 C48 172 104 124 184 122 C234 120 264 130 276 148 C288 130 320 118 366 120 C418 123 460 146 464 184 C467 208 452 226 424 238 C384 254 344 274 314 296 C302 305 294 316 290 330 C286 356 262 368 240 358 C231 354 226 346 222 338 C190 380 132 396 94 372 C62 352 48 300 48 244 Z"/>
+          <rect x="114" y="168" width="142" height="184" rx="20" fill="#0E5257"/>
+          <rect x="132" y="188" width="106" height="30" rx="7" fill="#F4F6F5"/>
+          <g fill="#F4F6F5">
+            <rect x="132" y="234" width="27" height="26" rx="6"/><rect x="171" y="234" width="27" height="26" rx="6"/><rect x="210" y="234" width="27" height="26" rx="6"/>
+            <rect x="132" y="272" width="27" height="26" rx="6"/><rect x="171" y="272" width="27" height="26" rx="6"/><rect x="210" y="272" width="27" height="26" rx="6"/>
+            <rect x="132" y="310" width="27" height="26" rx="6"/><rect x="171" y="310" width="27" height="26" rx="6"/><rect x="210" y="310" width="27" height="26" rx="6"/>
+          </g>
+        </svg>
+      </span>
+      <div>
+        <p class="eyebrow">Hospital Italiano de Buenos Aires · Sección Hepatología</p>
+        <h1>Scores en Hepatología</h1>
+        <p class="standfirst">Dieciséis puntajes pronósticos y diagnósticos de uso corriente, con la fórmula original, los rangos de clasificación y las estimaciones publicadas presentados por separado.</p>
+      </div>
+    </div>
+    <div class="masthead-side">
+      <p class="masthead-note">Las unidades son las que informan los laboratorios locales (mg/dL, g/dL, mg/dL de urea). Las conversiones a µmol/L y g/L que exige cada fórmula se muestran en el detalle del cálculo.</p>
+      <button class="install" id="install" type="button" hidden>Instalar en este dispositivo</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="index" aria-label="Índice de scores">
+      <input class="search" id="q" type="search" placeholder="Buscar score…" aria-label="Buscar score">
+      <div id="idx"></div>
+    </nav>
+
+    <main>
+      <div class="calc-head">
+        <p class="calc-kicker" id="kicker"></p>
+        <h2 id="title"></h2>
+        <p class="calc-sub" id="sub"></p>
+      </div>
+
+      <div class="calc-body">
+        <form class="inputs" id="inputs" autocomplete="off" onsubmit="return false"></form>
+        <div class="results" id="results"></div>
+      </div>
+
+      <p class="disclaimer"><strong>Uso interno.</strong> Herramienta de consulta para los fellows de la Sección Hepatología del Hospital Italiano de Buenos Aires. Reproduce fórmulas publicadas con fines de referencia y enseñanza; los valores se calculan en el navegador y no se guardan ni se transmiten. No sustituye el juicio clínico ni las calculadoras oficiales de asignación de órganos: para MELD 3.0 con fines de lista de espera rige la calculadora del organismo de procuración correspondiente.</p>
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ln = Math.log, log10 = Math.log10, exp = Math.exp;
+  var BILI = 17.104;   // mg/dL -> µmol/L
+  var UREA = 6.006;    // mg/dL -> mmol/L
+
+  function clamp(x, lo, hi){ return Math.min(hi, Math.max(lo, x)); }
+  function f(x, d){
+    var s = (Math.round(x * Math.pow(10,d)) / Math.pow(10,d)).toFixed(d);
+    return s.replace(".", ",").replace("-", "−");
+  }
+
+  // ---- helpers for field definitions -------------------------------------
+  function N(k, label, unit, def, step){ return {k:k, label:label, unit:unit, def:def, step:step||"any", type:"number"}; }
+  function S(k, label, def, options){ return {k:k, label:label, def:def, type:"select", options:options}; }
+  var YN = [{v:0,label:"No"},{v:1,label:"Sí"}];
+
+  // ========================================================================
+  // SCORES
+  // ========================================================================
+  var SCORES = [
+
+  // ---------------------------------------------------------------- Child-Pugh
+  {
+    id:"child", group:"Enfermedad hepática crónica", name:"Child-Pugh",
+    title:"Child-Turcotte-Pugh",
+    sub:"Gradúa la reserva funcional hepática en cirrosis a partir de tres variables de laboratorio y dos clínicas. Sigue siendo el marco de referencia para describir el estadio funcional.",
+    fields:[
+      N("bili","Bilirrubina total","mg/dL",2.4,"0.1"),
+      N("alb","Albúmina","g/dL",3.0,"0.1"),
+      N("inr","RIN","",1.8,"0.1"),
+      S("asc","Ascitis",1,[{v:1,label:"Ausente"},{v:2,label:"Leve / controlada con diuréticos"},{v:3,label:"Moderada a severa / refractaria"}]),
+      S("eh","Encefalopatía",1,[{v:1,label:"Ausente"},{v:2,label:"Grado I–II"},{v:3,label:"Grado III–IV"}])
+    ],
+    compute:function(v){
+      var pb = v.bili < 2 ? 1 : (v.bili <= 3 ? 2 : 3);
+      var pa = v.alb > 3.5 ? 1 : (v.alb >= 2.8 ? 2 : 3);
+      var pi = v.inr < 1.7 ? 1 : (v.inr <= 2.3 ? 2 : 3);
+      var t = pb + pa + pi + v.asc + v.eh;
+      return {
+        value: String(t), unit:"puntos",
+        band: t <= 6 ? 0 : (t <= 9 ? 1 : 2),
+        detail:[
+          {l:"Bilirrubina", r:pb + " pto" + (pb>1?"s":"")},
+          {l:"Albúmina", r:pa + " pto" + (pa>1?"s":"")},
+          {l:"RIN", r:pi + " pto" + (pi>1?"s":"")},
+          {l:"Ascitis", r:v.asc + " pto" + (v.asc>1?"s":"")},
+          {l:"Encefalopatía", r:v.eh + " pto" + (v.eh>1?"s":"")}
+        ]
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Clase","Puntaje"],
+    bands:[["A","5 – 6"],["B","7 – 9"],["C","10 – 15"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Clase","Supervivencia 1 año","Supervivencia 2 años"],
+    est:[["A","100 %","85 %"],["B","80 %","60 %"],["C","45 %","35 %"]],
+    estNote:"Cifras de las series clásicas previas a la era del trasplante; sobrestiman la mortalidad actual en pacientes bien manejados.",
+    src:"Pugh RNH, Murray-Lyon IM, Dawson JL, et al. Transection of the oesophagus for bleeding oesophageal varices. Br J Surg 1973;60:646–649."
+  },
+
+  // ---------------------------------------------------------------- MELD 3.0
+  {
+    id:"meld3", group:"Enfermedad hepática crónica", name:"MELD 3.0",
+    title:"MELD 3.0",
+    sub:"Actualización de 2021 del MELD: incorpora sexo y albúmina, reduce el techo de creatinina a 3,0 mg/dL y agrega términos de interacción bilirrubina–sodio y albúmina–creatinina. Es la versión vigente para asignación en Estados Unidos desde 2023.",
+    fields:[
+      S("fem","Sexo",1,[{v:0,label:"Masculino"},{v:1,label:"Femenino"}]),
+      N("bili","Bilirrubina total","mg/dL",3.2,"0.1"),
+      N("inr","RIN","",1.9,"0.1"),
+      N("cr","Creatinina","mg/dL",1.4,"0.1"),
+      N("na","Sodio","mEq/L",131,"1"),
+      N("alb","Albúmina","g/dL",2.9,"0.1"),
+      S("dial","Diálisis ≥2 veces en la última semana o CVVHD 24 h",0,YN)
+    ],
+    compute:function(v){
+      var notes = [];
+      var bili = Math.max(1, v.bili); if (v.bili < 1) notes.push("Bilirrubina < 1,0 llevada a 1,0.");
+      var inr  = Math.max(1, v.inr);  if (v.inr  < 1) notes.push("RIN < 1,0 llevado a 1,0.");
+      var cr   = v.dial ? 3 : clamp(v.cr, 1, 3);
+      if (v.dial) notes.push("Diálisis: creatinina fijada en 3,0 mg/dL.");
+      else if (v.cr < 1) notes.push("Creatinina < 1,0 llevada a 1,0.");
+      else if (v.cr > 3) notes.push("Creatinina > 3,0 truncada en 3,0.");
+      var na = clamp(v.na, 125, 137);
+      if (v.na < 125 || v.na > 137) notes.push("Sodio acotado al rango 125–137 mEq/L.");
+      var alb = clamp(v.alb, 1.5, 3.5);
+      if (v.alb < 1.5 || v.alb > 3.5) notes.push("Albúmina acotada al rango 1,5–3,5 g/dL.");
+
+      var raw = 1.33 * v.fem
+        + 4.56 * ln(bili)
+        + 0.82 * (137 - na)
+        - 0.24 * (137 - na) * ln(bili)
+        + 9.09 * ln(inr)
+        + 11.14 * ln(cr)
+        + 1.85 * (3.5 - alb)
+        - 1.83 * (3.5 - alb) * ln(cr)
+        + 6;
+      var s = clamp(Math.round(raw), 6, 40);
+      if (raw > 40) notes.push("Puntaje truncado en el máximo de 40.");
+      return {
+        value:String(s), unit:"puntos",
+        band: s <= 9 ? 0 : (s <= 19 ? 1 : (s <= 29 ? 2 : (s <= 39 ? 3 : 4))),
+        detail:[
+          {l:"Valor sin redondear", r:f(raw,2)},
+          {l:"Creatinina utilizada", r:f(cr,2) + " mg/dL"},
+          {l:"Sodio utilizado", r:f(na,0) + " mEq/L"},
+          {l:"Albúmina utilizada", r:f(alb,1) + " g/dL"}
+        ],
+        notes:notes
+      };
+    },
+    bandsTitle:"Rangos de referencia",
+    bandsCols:["Rango","MELD"],
+    bands:[["Bajo","6 – 9"],["Intermedio bajo","10 – 19"],["Intermedio alto","20 – 29"],["Alto","30 – 39"],["Máximo","40"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["MELD","Mortalidad a 3 meses en lista"],
+    est:[["≤ 9","1,9 %"],["10 – 19","6,0 %"],["20 – 29","19,6 %"],["30 – 39","52,6 %"],["≥ 40","71,3 %"]],
+    estNote:"Mortalidad a tres meses derivada de la cohorte de validación del MELD original (Wiesner, Gastroenterology 2003). No fue recalibrada para MELD 3.0: úsela como referencia de orden de magnitud, no como estimación puntual de esta versión.",
+    src:"Kim WR, Mannalithara A, Heimbach JK, et al. MELD 3.0: the Model for End-Stage Liver Disease updated for the modern era. Gastroenterology 2021;161:1887–1895."
+  },
+
+  // ---------------------------------------------------------------- MELD / MELD-Na
+  {
+    id:"meldna", group:"Enfermedad hepática crónica", name:"MELD y MELD-Na",
+    title:"MELD original y MELD-Na",
+    sub:"Versión de 2016 usada por OPTN hasta la adopción del MELD 3.0, y todavía la referencia de la mayor parte de la literatura y de varios programas de la región.",
+    fields:[
+      N("bili","Bilirrubina total","mg/dL",3.2,"0.1"),
+      N("inr","RIN","",1.9,"0.1"),
+      N("cr","Creatinina","mg/dL",1.4,"0.1"),
+      N("na","Sodio","mEq/L",131,"1"),
+      S("dial","Diálisis ≥2 veces en la última semana o CVVHD 24 h",0,YN)
+    ],
+    compute:function(v){
+      var notes = [];
+      var bili = Math.max(1, v.bili), inr = Math.max(1, v.inr);
+      var cr = v.dial ? 4 : clamp(v.cr, 1, 4);
+      if (v.dial) notes.push("Diálisis: creatinina fijada en 4,0 mg/dL.");
+      else if (v.cr > 4) notes.push("Creatinina > 4,0 truncada en 4,0.");
+      var na = clamp(v.na, 125, 137);
+
+      var mi = 10 * (0.957 * ln(cr) + 0.378 * ln(bili) + 1.120 * ln(inr) + 0.643);
+      mi = Math.round(mi * 10) / 10;
+      var mna = mi;
+      if (mi > 11) mna = mi + 1.32 * (137 - na) - 0.033 * mi * (137 - na);
+      var out = clamp(Math.round(mna), 6, 40);
+      var meldOnly = clamp(Math.round(mi), 6, 40);
+      if (mi <= 11) notes.push("MELD ≤ 11: no se aplica la corrección por sodio.");
+      return {
+        value:String(out), unit:"puntos MELD-Na",
+        band: out <= 9 ? 0 : (out <= 19 ? 1 : (out <= 29 ? 2 : (out <= 39 ? 3 : 4))),
+        detail:[
+          {l:"MELD original (redondeado)", r:String(meldOnly)},
+          {l:"MELD(i) sin redondear", r:f(mi,1)},
+          {l:"MELD-Na sin redondear", r:f(mna,2)},
+          {l:"Sodio utilizado", r:f(na,0) + " mEq/L"}
+        ],
+        notes:notes
+      };
+    },
+    bandsTitle:"Rangos de referencia",
+    bandsCols:["Rango","MELD-Na"],
+    bands:[["Bajo","6 – 9"],["Intermedio bajo","10 – 19"],["Intermedio alto","20 – 29"],["Alto","30 – 39"],["Máximo","40"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["MELD","Mortalidad a 3 meses en lista"],
+    est:[["≤ 9","1,9 %"],["10 – 19","6,0 %"],["20 – 29","19,6 %"],["30 – 39","52,6 %"],["≥ 40","71,3 %"]],
+    estNote:"Cohorte de validación prospectiva de Wiesner (Gastroenterology 2003), sobre MELD sin corrección por sodio.",
+    src:"Kamath PS, et al. Hepatology 2001;33:464–470. · Kim WR, et al. N Engl J Med 2008;359:1018–1026. · Política OPTN vigente desde enero de 2016."
+  },
+
+  // ---------------------------------------------------------------- ALBI
+  {
+    id:"albi", group:"Enfermedad hepática crónica", name:"ALBI",
+    title:"Grado ALBI (albúmina–bilirrubina)",
+    sub:"Estima la función hepática con sólo dos variables objetivas, sin los componentes subjetivos del Child-Pugh. Desarrollado en hepatocarcinoma y luego extendido a otras poblaciones.",
+    fields:[
+      N("bili","Bilirrubina total","mg/dL",1.6,"0.1"),
+      N("alb","Albúmina","g/dL",3.4,"0.1")
+    ],
+    compute:function(v){
+      var bu = v.bili * BILI, ag = v.alb * 10;
+      var s = 0.66 * log10(bu) - 0.085 * ag;
+      return {
+        value:f(s,2), unit:"",
+        band: s <= -2.60 ? 0 : (s <= -1.39 ? 1 : 2),
+        detail:[
+          {l:"Bilirrubina convertida", r:f(bu,1) + " µmol/L"},
+          {l:"Albúmina convertida", r:f(ag,1) + " g/L"},
+          {l:"log₁₀ (bilirrubina)", r:f(log10(bu),3)}
+        ]
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Grado","Puntaje ALBI"],
+    bands:[["Grado 1","≤ −2,60"],["Grado 2","> −2,60 y ≤ −1,39"],["Grado 3","> −1,39"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Observación",""],
+    est:[
+      ["Supervivencia","Decrece de forma monótona del grado 1 al 3 en todos los estadios BCLC"],
+      ["Dentro de Child-Pugh A","Separa dos subgrupos con pronóstico claramente distinto"]
+    ],
+    estNote:"La mediana de supervivencia por grado depende fuertemente de la cohorte (hepatocarcinoma tratado, cirrosis no tumoral, resección) y no se transporta entre poblaciones; consulte las cifras de la serie que corresponda a su paciente.",
+    src:"Johnson PJ, Berhane S, Kagebayashi C, et al. Assessment of liver function in patients with hepatocellular carcinoma: a new evidence-based approach — the ALBI grade. J Clin Oncol 2015;33:550–558."
+  },
+
+  // ---------------------------------------------------------------- FIB-4
+  {
+    id:"fib4", group:"Fibrosis no invasiva", name:"FIB-4",
+    title:"FIB-4",
+    sub:"Primer paso recomendado por las guías para descartar fibrosis avanzada en enfermedad hepática esteatósica metabólica y en hepatitis virales, con dos transaminasas, plaquetas y edad.",
+    fields:[
+      N("edad","Edad","años",58,"1"),
+      N("ast","AST (TGO)","U/L",48,"1"),
+      N("alt","ALT (TGP)","U/L",36,"1"),
+      N("plq","Plaquetas","×10⁹/L",162,"1")
+    ],
+    compute:function(v){
+      var s = (v.edad * v.ast) / (v.plq * Math.sqrt(v.alt));
+      var lo = v.edad >= 65 ? 2.0 : 1.30;
+      return {
+        value:f(s,2), unit:"",
+        band: s < lo ? 0 : (s <= 2.67 ? 1 : 2),
+        detail:[
+          {l:"Corte inferior aplicado", r:f(lo,2)},
+          {l:"Cociente AST/ALT", r:f(v.ast/v.alt,2)},
+          {l:"√ALT", r:f(Math.sqrt(v.alt),2)}
+        ],
+        notes: v.edad >= 65 ? ["Edad ≥ 65 años: se aplica el corte inferior de 2,0 propuesto por McPherson (2017) para reducir falsos positivos."] : []
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Zona","FIB-4"],
+    bands:[["Descarta fibrosis avanzada","< 1,30 (< 2,0 si ≥ 65 años)"],["Indeterminada","1,30 – 2,67"],["Sugiere fibrosis avanzada","> 2,67"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Corte","Rendimiento"],
+    est:[
+      ["< 1,30","VPN ≈ 90 % para fibrosis avanzada (F3–F4)"],
+      ["> 2,67","VPP ≈ 80 % para fibrosis avanzada"],
+      ["Hepatitis C (Sterling)","Cortes 1,45 y 3,25"]
+    ],
+    estNote:"El VPN alto sostiene el uso del FIB-4 como filtro poblacional; el VPP cae marcadamente en atención primaria por la baja prevalencia. La zona indeterminada exige una segunda prueba (elastografía o ELF).",
+    src:"Sterling RK, et al. Hepatology 2006;43:1317–1325. · Shah AG, et al. Clin Gastroenterol Hepatol 2009;7:1104–1112. · McPherson S, et al. Am J Gastroenterol 2017;112:740–751."
+  },
+
+  // ---------------------------------------------------------------- APRI
+  {
+    id:"apri", group:"Fibrosis no invasiva", name:"APRI",
+    title:"APRI",
+    sub:"Índice AST/plaquetas. Su valor está en que sólo requiere dos determinaciones de rutina, lo que la OMS aprovechó para recomendarlo en escenarios de recursos limitados.",
+    fields:[
+      N("ast","AST (TGO)","U/L",68,"1"),
+      N("lsn","Límite superior normal de AST","U/L",40,"1"),
+      N("plq","Plaquetas","×10⁹/L",118,"1")
+    ],
+    compute:function(v){
+      var s = (v.ast / v.lsn) / v.plq * 100;
+      return {
+        value:f(s,2), unit:"",
+        band: s < 0.5 ? 0 : (s <= 1.5 ? 1 : 2),
+        detail:[{l:"AST / LSN", r:f(v.ast/v.lsn,2)}]
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Zona","APRI"],
+    bands:[["Fibrosis significativa poco probable","< 0,5"],["Indeterminada","0,5 – 1,5"],["Fibrosis significativa probable","> 1,5"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Corte","Rendimiento"],
+    est:[
+      ["> 0,7 (fibrosis significativa)","Sensibilidad 77 % · especificidad 72 %"],
+      ["> 1,0 (cirrosis)","Sensibilidad 76 % · especificidad 72 %"],
+      ["> 2,0 (cirrosis, OMS)","Especificidad alta, sensibilidad baja"]
+    ],
+    estNote:"Rendimiento del metaanálisis de Lin (Hepatology 2011), predominantemente en hepatitis C. La OMS adoptó el corte > 2 para diagnosticar cirrosis en hepatitis B donde no hay elastografía disponible.",
+    src:"Wai CT, Greenson JK, Fontana RJ, et al. Hepatology 2003;38:518–526. · Lin ZH, et al. Hepatology 2011;53:726–736."
+  },
+
+  // ---------------------------------------------------------------- NFS
+  {
+    id:"nfs", group:"Fibrosis no invasiva", name:"NAFLD Fibrosis Score",
+    title:"NAFLD Fibrosis Score",
+    sub:"Modelo desarrollado específicamente en hígado graso no alcohólico con biopsia. Incorpora componentes metabólicos (IMC, disglucemia) que el FIB-4 no contempla.",
+    fields:[
+      N("edad","Edad","años",56,"1"),
+      N("imc","Índice de masa corporal","kg/m²",32.4,"0.1"),
+      S("ifg","Glucemia alterada en ayunas o diabetes",1,YN),
+      N("ast","AST (TGO)","U/L",44,"1"),
+      N("alt","ALT (TGP)","U/L",52,"1"),
+      N("plq","Plaquetas","×10⁹/L",188,"1"),
+      N("alb","Albúmina","g/dL",4.0,"0.1")
+    ],
+    compute:function(v){
+      var r = v.ast / v.alt;
+      var s = -1.675 + 0.037*v.edad + 0.094*v.imc + 1.13*v.ifg + 0.99*r - 0.013*v.plq - 0.66*v.alb;
+      return {
+        value:f(s,3), unit:"",
+        band: s < -1.455 ? 0 : (s <= 0.676 ? 1 : 2),
+        detail:[{l:"Cociente AST/ALT", r:f(r,2)}]
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Zona","NFS"],
+    bands:[["Descarta fibrosis avanzada","< −1,455"],["Indeterminada","−1,455 – 0,676"],["Sugiere fibrosis avanzada","> 0,676"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Corte","Rendimiento"],
+    est:[["< −1,455","VPN 88 – 93 %"],["> 0,676","VPP 79 – 90 %"]],
+    estNote:"En la cohorte de derivación y validación de Angulo, la aplicación de ambos cortes evitó la biopsia en aproximadamente tres de cada cuatro pacientes.",
+    src:"Angulo P, Hui JM, Marchesini G, et al. The NAFLD fibrosis score: a noninvasive system that identifies liver fibrosis in patients with NAFLD. Hepatology 2007;45:846–854."
+  },
+
+  // ---------------------------------------------------------------- Maddrey
+  {
+    id:"maddrey", group:"Hepatitis alcohólica", name:"Función discriminante de Maddrey",
+    title:"Función discriminante de Maddrey",
+    sub:"El umbral histórico para definir hepatitis alcohólica grave y para plantear corticoides. Depende del tiempo de protrombina del control del propio laboratorio, lo que limita su reproducibilidad entre centros.",
+    fields:[
+      N("tp","Tiempo de protrombina del paciente","segundos",22.5,"0.1"),
+      N("tc","Tiempo de protrombina del control","segundos",12.5,"0.1"),
+      N("bili","Bilirrubina total","mg/dL",14.0,"0.1")
+    ],
+    compute:function(v){
+      var s = 4.6 * (v.tp - v.tc) + v.bili;
+      return {
+        value:f(s,1), unit:"",
+        band: s < 32 ? 0 : 1,
+        detail:[{l:"Prolongación del TP", r:f(v.tp - v.tc,1) + " s"}]
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Categoría","FD"],
+    bands:[["No grave","< 32"],["Grave","≥ 32"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Categoría","Mortalidad al mes sin tratamiento"],
+    est:[["FD < 32","< 10 %"],["FD ≥ 32","30 – 50 %"]],
+    estNote:"El umbral de 32 define la población en la que los ensayos evaluaron corticoides; por debajo de ese valor el beneficio no fue demostrado.",
+    src:"Maddrey WC, Boitnott JK, Bedine MS, et al. Corticosteroid therapy of alcoholic hepatitis. Gastroenterology 1978;75:193–199."
+  },
+
+  // ---------------------------------------------------------------- Lille
+  {
+    id:"lille", group:"Hepatitis alcohólica", name:"Modelo de Lille",
+    title:"Modelo de Lille",
+    sub:"Se calcula al séptimo día de corticoides y mide la respuesta al tratamiento: un valor alto identifica a quienes no se benefician de continuarlo. La variable decisiva es la caída de la bilirrubina entre el día 0 y el día 7.",
+    fields:[
+      N("edad","Edad","años",49,"1"),
+      N("alb","Albúmina día 0","g/dL",2.6,"0.1"),
+      N("b0","Bilirrubina día 0","mg/dL",18.0,"0.1"),
+      N("b7","Bilirrubina día 7","mg/dL",12.5,"0.1"),
+      N("cr","Creatinina día 0","mg/dL",0.9,"0.1"),
+      N("tp","Tiempo de protrombina","segundos",21.0,"0.1")
+    ],
+    compute:function(v){
+      var b0 = v.b0 * BILI, b7 = v.b7 * BILI, ag = v.alb * 10;
+      var ir = v.cr > 1.3 ? 1 : 0;
+      var R = 3.19 - 0.101*v.edad + 0.147*ag + 0.0165*(b0 - b7) - 0.206*ir - 0.0065*b0 - 0.0096*v.tp;
+      var s = exp(-R) / (1 + exp(-R));
+      return {
+        value:f(s,3), unit:"",
+        band: s < 0.45 ? 0 : 1,
+        detail:[
+          {l:"R (predictor lineal)", r:f(R,3)},
+          {l:"Caída de bilirrubina (día 0 − día 7)", r:f(b0 - b7,1) + " µmol/L"},
+          {l:"Insuficiencia renal (Cr > 1,3 mg/dL)", r: ir ? "Sí (1)" : "No (0)"},
+          {l:"Albúmina convertida", r:f(ag,1) + " g/L"}
+        ]
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Categoría","Lille"],
+    bands:[["Respondedor","< 0,45"],["No respondedor","≥ 0,45"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Categoría","Supervivencia a 6 meses"],
+    est:[["Lille < 0,45","≈ 85 %"],["Lille ≥ 0,45","≈ 25 %"]],
+    estNote:"En la cohorte original, suspender los corticoides en los no respondedores no empeoró la supervivencia y evitó la exposición prolongada al riesgo infeccioso. Un corte alternativo de 0,56 se propuso para decisiones más conservadoras.",
+    src:"Louvet A, Naveau S, Abdelnour M, et al. The Lille model: a new tool for therapeutic strategy in patients with severe alcoholic hepatitis treated with steroids. Hepatology 2007;45:1348–1354."
+  },
+
+  // ---------------------------------------------------------------- GAHS
+  {
+    id:"gahs", group:"Hepatitis alcohólica", name:"GAHS",
+    title:"Glasgow Alcoholic Hepatitis Score",
+    sub:"Puntaje ordinal de cinco variables al ingreso. A diferencia de Maddrey, no depende del control del laboratorio, y en la serie original identificó al subgrupo con beneficio de corticoides.",
+    fields:[
+      N("edad","Edad","años",52,"1"),
+      N("gb","Leucocitos","×10⁹/L",13.2,"0.1"),
+      N("urea","Urea plasmática (no BUN)","mg/dL",42,"1"),
+      N("inr","RIN","",2.1,"0.1"),
+      N("bili","Bilirrubina total","mg/dL",16.0,"0.1")
+    ],
+    compute:function(v){
+      var ur = v.urea / UREA, bu = v.bili * BILI;
+      var pe = v.edad < 50 ? 1 : 2;
+      var pg = v.gb < 15 ? 1 : 2;
+      var pu = ur < 5 ? 1 : 2;
+      var pi = v.inr < 1.5 ? 1 : (v.inr <= 2.0 ? 2 : 3);
+      var pb = bu < 125 ? 1 : (bu <= 250 ? 2 : 3);
+      var t = pe + pg + pu + pi + pb;
+      return {
+        value:String(t), unit:"puntos",
+        band: t < 9 ? 0 : 1,
+        detail:[
+          {l:"Edad", r:pe + " pto" + (pe>1?"s":"")},
+          {l:"Leucocitos", r:pg + " pto" + (pg>1?"s":"")},
+          {l:"Urea = " + f(ur,2) + " mmol/L", r:pu + " pto" + (pu>1?"s":"")},
+          {l:"RIN", r:pi + " pto" + (pi>1?"s":"")},
+          {l:"Bilirrubina = " + f(bu,0) + " µmol/L", r:pb + " pto" + (pb>1?"s":"")}
+        ]
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Categoría","GAHS (rango 5 – 12)"],
+    bands:[["Riesgo menor","5 – 8"],["Riesgo alto","≥ 9"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Categoría","Supervivencia día 28"],
+    est:[
+      ["GAHS < 9, sin corticoides","87 %"],
+      ["GAHS ≥ 9, sin corticoides","46 %"],
+      ["GAHS ≥ 9, con corticoides","78 %"]
+    ],
+    estNote:"El contraste entre las dos últimas filas es el argumento central del trabajo original: el beneficio de los corticoides se concentró en los pacientes con GAHS ≥ 9 y función discriminante ≥ 32.",
+    src:"Forrest EH, Evans CDJ, Stewart S, et al. Analysis of factors predictive of mortality in alcoholic hepatitis and derivation and validation of the Glasgow alcoholic hepatitis score. Gut 2005;54:1174–1179."
+  },
+
+  // ---------------------------------------------------------------- King's College
+  {
+    id:"kings", group:"Falla hepática aguda", name:"Criterios del King's College",
+    title:"Criterios del King's College",
+    sub:"Criterios de trasplante urgente en falla hepática aguda, con ramas separadas según la etiología sea o no paracetamol. Su especificidad es alta y su sensibilidad, moderada: no cumplirlos no descarta un desenlace fatal.",
+    fields:[
+      S("eti","Etiología",1,[{v:0,label:"Paracetamol"},{v:1,label:"No paracetamol"}]),
+      S("ph","pH arterial < 7,30 tras resucitación adecuada",0,YN),
+      S("lac","Lactato arterial > 3,5 mmol/L a las 4 h o > 3,0 a las 12 h",0,YN),
+      N("inr","RIN","",4.2,"0.1"),
+      N("cr","Creatinina","mg/dL",1.8,"0.1"),
+      N("bili","Bilirrubina total","mg/dL",19.5,"0.1"),
+      N("edad","Edad","años",44,"1"),
+      S("eh","Encefalopatía grado III–IV",1,YN),
+      S("etio2","Etiología desfavorable (no A no B, halotano, reacción idiosincrásica a fármacos)",1,YN),
+      S("ict","Intervalo ictericia–encefalopatía > 7 días",1,YN)
+    ],
+    compute:function(v){
+      var detail = [], met = false, extra = [];
+      if (v.eti === 0){
+        var triple = (v.inr > 6.5) && (v.cr > 3.4) && v.eh;
+        met = !!v.ph || triple || !!v.lac;
+        detail = [
+          {l:"pH arterial < 7,30", r: v.ph ? "Sí" : "No"},
+          {l:"Lactato (criterio modificado)", r: v.lac ? "Sí" : "No"},
+          {l:"RIN > 6,5", r: v.inr > 6.5 ? "Sí" : "No"},
+          {l:"Creatinina > 3,4 mg/dL", r: v.cr > 3.4 ? "Sí" : "No"},
+          {l:"Encefalopatía grado III–IV", r: v.eh ? "Sí" : "No"},
+          {l:"Tríada completa", r: triple ? "Sí" : "No"}
+        ];
+      } else {
+        var c1 = (v.edad < 10 || v.edad > 40) ? 1 : 0;
+        var c2 = v.etio2 ? 1 : 0;
+        var c3 = v.ict ? 1 : 0;
+        var c4 = v.inr > 3.5 ? 1 : 0;
+        var c5 = v.bili > 17.5 ? 1 : 0;
+        var n = c1 + c2 + c3 + c4 + c5;
+        met = (v.inr > 6.5) || n >= 3;
+        detail = [
+          {l:"RIN > 6,5 (criterio aislado)", r: v.inr > 6.5 ? "Sí" : "No"},
+          {l:"Edad < 10 o > 40 años", r: c1 ? "Sí" : "No"},
+          {l:"Etiología desfavorable", r: c2 ? "Sí" : "No"},
+          {l:"Ictericia → encefalopatía > 7 días", r: c3 ? "Sí" : "No"},
+          {l:"RIN > 3,5", r: c4 ? "Sí" : "No"},
+          {l:"Bilirrubina > 17,5 mg/dL", r: c5 ? "Sí" : "No"},
+          {l:"Criterios menores reunidos", r: n + " de 5"}
+        ];
+        extra = n >= 3 || v.inr > 6.5 ? [] : ["Se requieren tres criterios menores, o RIN > 6,5 de forma aislada."];
+      }
+      return {
+        kind:"text",
+        value: met ? "Cumple" : "No cumple", unit:"criterios de trasplante urgente",
+        band: v.eti,
+        detail:detail, notes:extra
+      };
+    },
+    bandsTitle:"Criterios",
+    bandsCols:["Rama","Definición"],
+    bands:[
+      ["Paracetamol","pH < 7,30 tras resucitación; o bien RIN > 6,5 + creatinina > 3,4 mg/dL + encefalopatía III–IV en forma simultánea"],
+      ["No paracetamol","RIN > 6,5 en forma aislada; o bien tres de: edad < 10 o > 40 años, etiología desfavorable, ictericia–encefalopatía > 7 días, RIN > 3,5, bilirrubina > 17,5 mg/dL"]
+    ],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Métrica","Valor"],
+    est:[
+      ["Especificidad","92 – 95 %"],
+      ["Sensibilidad","58 – 69 %"],
+      ["Lectura clínica","Cumplirlos identifica bien a quien morirá sin trasplante; no cumplirlos no lo excluye"]
+    ],
+    estNote:"Rendimiento agrupado del metaanálisis de McPhail (J Hepatol 2010). La baja sensibilidad es la limitación reconocida: una proporción sustancial de los pacientes que no cumplen criterios igualmente fallece, de allí que se hayan propuesto complementos como el lactato y el índice del ALFSG.",
+    src:"O'Grady JG, Alexander GJM, Hayllar KM, Williams R. Early indicators of prognosis in fulminant hepatic failure. Gastroenterology 1989;97:439–445. · Bernal W, et al. Lancet 2002;359:558–563."
+  },
+
+  // ---------------------------------------------------------------- Clichy
+  {
+    id:"clichy", group:"Falla hepática aguda", name:"Criterios de Clichy",
+    title:"Criterios de Clichy-Villejuif",
+    sub:"Alternativa francesa desarrollada en hepatitis fulminante viral. Sustituye los parámetros del King's College por el factor V, ajustado por edad, en presencia de encefalopatía.",
+    fields:[
+      S("eh","Encefalopatía (confusión o coma)",1,YN),
+      N("edad","Edad","años",28,"1"),
+      N("fv","Factor V","%",17,"1")
+    ],
+    compute:function(v){
+      var lim = v.edad < 30 ? 20 : 30;
+      var met = !!v.eh && v.fv < lim;
+      return {
+        kind:"text",
+        value: met ? "Cumple" : "No cumple", unit:"criterios de trasplante urgente",
+        band: v.edad < 30 ? 0 : 1,
+        detail:[
+          {l:"Encefalopatía presente", r: v.eh ? "Sí" : "No"},
+          {l:"Umbral de factor V por edad", r:"< " + lim + " %"},
+          {l:"Factor V del paciente", r:f(v.fv,0) + " %"}
+        ]
+      };
+    },
+    bandsTitle:"Criterios",
+    bandsCols:["Edad","Umbral de factor V (con encefalopatía)"],
+    bands:[["< 30 años","< 20 %"],["≥ 30 años","< 30 %"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Métrica","Valor"],
+    est:[
+      ["Población de derivación","Hepatitis fulminante por virus B"],
+      ["Comparación con King's College","Sensibilidad algo mayor, especificidad menor en series no virales"]
+    ],
+    estNote:"El rendimiento cae fuera de la etiología viral, en particular en falla hepática por paracetamol, donde los criterios del King's College mantienen mejor desempeño. La dosificación de factor V no está disponible en todos los centros.",
+    src:"Bernuau J, Goudeau A, Poynard T, et al. Multivariate analysis of prognostic factors in fulminant hepatitis B. Hepatology 1986;6:648–651."
+  },
+
+  // ---------------------------------------------------------------- CLIF-C ACLF
+  {
+    id:"clif", group:"Falla hepática aguda sobre crónica", name:"CLIF-C OF y CLIF-C ACLF",
+    title:"CLIF-C OF y CLIF-C ACLF",
+    sub:"El CLIF-C OF puntúa seis órganos de 1 a 3 y define el grado de ACLF; el CLIF-C ACLF agrega edad y leucocitos para producir un puntaje continuo de mortalidad a corto plazo. Sólo tiene sentido calcularlo en pacientes con ACLF establecida.",
+    fields:[
+      N("bili","Bilirrubina total","mg/dL",14.0,"0.1"),
+      N("cr","Creatinina","mg/dL",2.6,"0.1"),
+      S("trr","Terapia de reemplazo renal",0,YN),
+      S("eh","Encefalopatía (West Haven)",1,[{v:0,label:"Grado 0"},{v:1,label:"Grado I–II"},{v:2,label:"Grado III–IV o intubado"}]),
+      N("inr","RIN","",2.3,"0.1"),
+      N("pam","Presión arterial media","mmHg",68,"1"),
+      S("vaso","Vasopresores",0,YN),
+      S("oxt","Índice de oxigenación",0,[{v:0,label:"PaO₂/FiO₂"},{v:1,label:"SpO₂/FiO₂"}]),
+      N("oxv","Valor del índice","",280,"1"),
+      S("vm","Ventilación mecánica",0,YN),
+      N("edad","Edad","años",57,"1"),
+      N("gb","Leucocitos","×10⁹/L",11.5,"0.1")
+    ],
+    compute:function(v){
+      var sLiv = v.bili < 6 ? 1 : (v.bili < 12 ? 2 : 3);
+      var sKid = v.trr ? 3 : (v.cr < 2 ? 1 : (v.cr < 3.5 ? 2 : 3));
+      var sBra = v.eh === 0 ? 1 : (v.eh === 1 ? 2 : 3);
+      var sCoa = v.inr < 2 ? 1 : (v.inr < 2.5 ? 2 : 3);
+      var sCir = v.vaso ? 3 : (v.pam >= 70 ? 1 : 2);
+      var sRes;
+      if (v.vm) sRes = 3;
+      else if (v.oxt === 0) sRes = v.oxv > 300 ? 1 : (v.oxv > 200 ? 2 : 3);
+      else sRes = v.oxv > 357 ? 1 : (v.oxv > 214 ? 2 : 3);
+      var of = sLiv + sKid + sBra + sCoa + sCir + sRes;
+
+      var fLiv = v.bili >= 12;
+      var fKid = v.trr || v.cr >= 2;
+      var fBra = v.eh === 2;
+      var fCoa = v.inr >= 2.5;
+      var fCir = !!v.vaso;
+      var fRes = sRes === 3;
+      var n = [fLiv,fKid,fBra,fCoa,fCir,fRes].filter(Boolean).length;
+
+      var grade, gi;
+      if (n >= 3){ grade = "ACLF grado 3"; gi = 3; }
+      else if (n === 2){ grade = "ACLF grado 2"; gi = 2; }
+      else if (n === 1){
+        var crMid = v.cr >= 1.5 && v.cr < 2;
+        if (fKid || crMid || v.eh === 1){ grade = "ACLF grado 1"; gi = 1; }
+        else { grade = "Sin ACLF"; gi = 0; }
+      } else { grade = "Sin ACLF"; gi = 0; }
+
+      var s = 10 * (0.33 * of + 0.04 * v.edad + 0.63 * ln(v.gb) - 2);
+      return {
+        value:f(s,1), unit:"puntos CLIF-C ACLF",
+        band: gi,
+        detail:[
+          {l:"CLIF-C OF total (rango 6 – 18)", r:String(of)},
+          {l:"Hígado / Riñón / Cerebro", r:sLiv + " · " + sKid + " · " + sBra},
+          {l:"Coagulación / Circulación / Respiración", r:sCoa + " · " + sCir + " · " + sRes},
+          {l:"Fallas orgánicas", r:String(n)},
+          {l:"Grado", r:grade}
+        ],
+        notes: n === 0 ? ["Sin fallas orgánicas: el CLIF-C ACLF no está validado en esta situación. Para descompensación aguda sin ACLF corresponde el CLIF-C AD."] : []
+      };
+    },
+    bandsTitle:"Grado de ACLF",
+    bandsCols:["Grado","Definición"],
+    bands:[
+      ["Sin ACLF","Ninguna falla orgánica, o falla única no renal con creatinina < 1,5 mg/dL y sin encefalopatía"],
+      ["ACLF grado 1","Falla renal aislada; o falla orgánica única con creatinina 1,5 – 1,9 mg/dL o encefalopatía grado I–II"],
+      ["ACLF grado 2","Dos fallas orgánicas"],
+      ["ACLF grado 3","Tres o más fallas orgánicas"]
+    ],
+    refTitle:"Subpuntajes del CLIF-C OF",
+    refCols:["Órgano","1 punto","2 puntos","3 puntos"],
+    ref:[
+      ["Hígado — bilirrubina (mg/dL)","< 6","6 – < 12","≥ 12"],
+      ["Riñón — creatinina (mg/dL)","< 2","2 – < 3,5","≥ 3,5 o TRR"],
+      ["Cerebro — West Haven","Grado 0","Grado I–II","Grado III–IV"],
+      ["Coagulación — RIN","< 2,0","2,0 – < 2,5","≥ 2,5"],
+      ["Circulación — PAM (mmHg)","≥ 70","< 70","Vasopresores"],
+      ["Respiración — PaO₂/FiO₂","> 300","> 200 – ≤ 300","≤ 200"],
+      ["Respiración — SpO₂/FiO₂","> 357","> 214 – ≤ 357","≤ 214 o ARM"]
+    ],
+    refNote:"Se define falla orgánica con subpuntaje 3, salvo la renal (creatinina ≥ 2,0 mg/dL, es decir subpuntaje 2 o 3) y la cerebral (encefalopatía grado III–IV).",
+    estTitle:"Estimaciones publicadas",
+    estCols:["Situación","Mortalidad a 28 días"],
+    est:[
+      ["CLIF-C ACLF ≥ 70 entre las 48 h y la primera semana","100 %"],
+      ["ACLF grado 3 con puntaje ≥ 55","≈ 80 %"],
+      ["ACLF grado 3 con puntaje < 70","≈ 64 %"]
+    ],
+    estNote:"El umbral de 70 fue propuesto como marcador de futilidad del soporte intensivo cuando persiste tras 48 horas a una semana de tratamiento pleno; no debe aplicarse al puntaje de ingreso ni en pacientes candidatos a trasplante.",
+    src:"Jalan R, Saliba F, Pavesi M, et al. Development and validation of a prognostic score to predict mortality in patients with acute-on-chronic liver failure. J Hepatol 2014;61:1038–1047. · Engelmann C, et al. Crit Care 2018;22:254."
+  },
+
+  // ---------------------------------------------------------------- CLIF-C AD
+  {
+    id:"clifad", group:"Falla hepática aguda sobre crónica", name:"CLIF-C AD",
+    title:"CLIF-C AD",
+    sub:"Puntaje para el paciente cirrótico hospitalizado por descompensación aguda que todavía no desarrolló falla orgánica. Su utilidad principal es identificar a quiénes puede darse de alta con seguimiento cercano.",
+    fields:[
+      N("edad","Edad","años",61,"1"),
+      N("cr","Creatinina","mg/dL",1.1,"0.1"),
+      N("inr","RIN","",1.5,"0.1"),
+      N("gb","Leucocitos","×10⁹/L",7.4,"0.1"),
+      N("na","Sodio","mEq/L",133,"1")
+    ],
+    compute:function(v){
+      var s = 10 * (0.03*v.edad + 0.66*ln(v.cr) + 1.71*ln(v.inr) + 0.88*ln(v.gb) - 0.05*v.na + 8);
+      return {
+        value:f(s,1), unit:"puntos",
+        band: s < 45 ? 0 : (s < 60 ? 1 : 2),
+        detail:[
+          {l:"ln (creatinina)", r:f(ln(v.cr),3)},
+          {l:"ln (RIN)", r:f(ln(v.inr),3)},
+          {l:"ln (leucocitos)", r:f(ln(v.gb),3)}
+        ]
+      };
+    },
+    bandsTitle:"Estratos de riesgo",
+    bandsCols:["Estrato","CLIF-C AD"],
+    bands:[["Bajo","< 45"],["Intermedio","45 – 59"],["Alto","≥ 60"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Observación",""],
+    est:[
+      ["Estrato bajo","Mortalidad a 90 días muy baja; sostiene la estrategia de alta precoz con control ambulatorio"],
+      ["Estrato alto","Riesgo elevado de progresión a ACLF durante la internación"]
+    ],
+    estNote:"El CLIF-C AD superó a MELD, MELD-Na y Child-Pugh en la predicción de mortalidad en descompensación aguda sin ACLF, pero se recalibra mal entre cohortes: interprete los estratos, no un porcentaje puntual.",
+    src:"Jalan R, Pavesi M, Saliba F, et al. The CLIF Consortium Acute Decompensation score (CLIF-C ADs) for prognosis of hospitalised cirrhotic patients without acute-on-chronic liver failure. J Hepatol 2015;62:831–840."
+  },
+
+  // ---------------------------------------------------------------- AIH
+  {
+    id:"aih", group:"Hepatitis autoinmune", name:"Score simplificado de HAI",
+    title:"Criterios simplificados de hepatitis autoinmune",
+    sub:"Versión de 2008 del International Autoimmune Hepatitis Group, con cuatro dominios y un máximo de ocho puntos. Reemplazó al puntaje original de 1999 en la práctica diagnóstica corriente.",
+    fields:[
+      S("aac","Autoanticuerpos",1,[
+        {v:0,label:"Negativos o por debajo de los títulos definidos"},
+        {v:1,label:"ANA o AML ≥ 1:40"},
+        {v:2,label:"ANA o AML ≥ 1:80, anti-LKM1 ≥ 1:40 o anti-SLA positivo"}
+      ]),
+      S("igg","IgG sérica",2,[
+        {v:0,label:"Dentro del límite superior normal"},
+        {v:1,label:"Por encima del límite superior normal"},
+        {v:2,label:"Por encima de 1,10 × el límite superior normal"}
+      ]),
+      S("hist","Histología",1,[
+        {v:0,label:"No compatible con hepatitis autoinmune"},
+        {v:1,label:"Compatible"},
+        {v:2,label:"Típica"}
+      ]),
+      S("vir","Hepatitis viral",2,[{v:0,label:"No excluida"},{v:2,label:"Excluida"}])
+    ],
+    compute:function(v){
+      var t = v.aac + v.igg + v.hist + v.vir;
+      return {
+        value:String(t), unit:"de 8 puntos",
+        band: t < 6 ? 0 : (t === 6 ? 1 : 2),
+        detail:[
+          {l:"Autoanticuerpos", r:v.aac + " pto" + (v.aac!==1?"s":"")},
+          {l:"IgG", r:v.igg + " pto" + (v.igg!==1?"s":"")},
+          {l:"Histología", r:v.hist + " pto" + (v.hist!==1?"s":"")},
+          {l:"Exclusión de hepatitis viral", r:v.vir + " pto" + (v.vir!==1?"s":"")}
+        ]
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Categoría","Puntaje"],
+    bands:[["No cumple criterios","≤ 5"],["Hepatitis autoinmune probable","6"],["Hepatitis autoinmune definida","≥ 7"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Corte","Sensibilidad","Especificidad"],
+    est:[["≥ 6","88 %","97 %"],["≥ 7","81 %","99 %"]],
+    estNote:"Los criterios simplificados fueron construidos para la HAI de presentación clásica. En la presentación aguda grave o como falla hepática fulminante pierden sensibilidad: los autoanticuerpos pueden ser negativos, la IgG normal y la histología mostrar necrosis centrolobulillar en lugar del patrón de interfase.",
+    src:"Hennes EM, Zeniya M, Czaja AJ, et al. Simplified criteria for the diagnosis of autoimmune hepatitis. Hepatology 2008;48:169–176."
+  },
+
+  // ---------------------------------------------------------------- LFI
+  {
+    id:"lfi", group:"Trasplante y fragilidad", name:"Liver Frailty Index",
+    title:"Liver Frailty Index",
+    sub:"Medida de fragilidad física validada en candidatos a trasplante hepático. Combina tres pruebas de consultorio y agrega información pronóstica independiente del MELD-Na.",
+    noCalc:true,
+    formula:"LFI = (−0,330 × fuerza de puño ajustada por sexo) + (−2,529 × levantadas de silla por segundo) + (−0,040 × tiempo de balance) + 6",
+    howTitle:"Cómo se miden los tres componentes",
+    how:[
+      {l:"Fuerza de puño", r:"Dinamómetro, mano dominante, tres intentos; se registra el valor más alto."},
+      {l:"Levantadas de silla", r:"Tiempo en segundos para cinco levantadas completas con los brazos cruzados sobre el pecho; si no las completa en 60 segundos se computa cero."},
+      {l:"Balance", r:"Tres posiciones — pies juntos lado a lado, semitándem y tándem — hasta 10 segundos cada una; se suman los tiempos, con un máximo de 30 segundos."}
+    ],
+    howNote:"El ajuste por sexo de la fuerza de puño que aplica la calculadora original no está publicado en forma cerrada, y la ecuación con la fuerza en kilogramos sin ajustar no reproduce el rango de valores informado en la literatura. Por eso esta página presenta la ecuación y los puntos de corte, pero no calcula el índice: para obtener un valor comparable con las publicaciones use la calculadora del grupo de la UCSF (liverfrailtyindex.ucsf.edu).",
+    bandsTitle:"Clasificación",
+    bandsCols:["Categoría","LFI"],
+    bands:[["Robusto","< 3,2"],["Prefrágil","3,2 – 4,4"],["Frágil","≥ 4,5"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Observación",""],
+    est:[
+      ["Fragilidad en lista","Predice mortalidad en lista de espera de forma independiente del MELD-Na"],
+      ["Trayectoria","El empeoramiento del LFI en el seguimiento agrega información por sobre un único valor basal"]
+    ],
+    estNote:"En la cohorte de derivación, cada aumento de una unidad del LFI se asoció a un riesgo sustancialmente mayor de mortalidad en lista, y el índice mejoró la discriminación del MELD-Na solo. Los puntos de corte se establecieron en poblaciones ambulatorias en evaluación pretrasplante: su desempeño en pacientes hospitalizados o con ascitis a tensión está menos caracterizado.",
+    src:"Lai JC, Covinsky KE, Dodge JL, et al. Development of a novel frailty index to predict mortality in patients with end-stage liver disease. Gastroenterology 2017;152:2010–2017."
+  }
+
+  ];
+
+  // ========================================================================
+  // RENDER
+  // ========================================================================
+  var $ = function(id){ return document.getElementById(id); };
+  function el(tag, cls, text){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  var current = SCORES[1]; // MELD 3.0 al abrir
+
+  function buildIndex(filter){
+    var wrap = $("idx");
+    wrap.textContent = "";
+    var groups = [], seen = {};
+    SCORES.forEach(function(s){
+      if (!seen[s.group]){ seen[s.group] = []; groups.push(s.group); }
+      seen[s.group].push(s);
+    });
+    var q = (filter || "").trim().toLowerCase();
+    groups.forEach(function(g){
+      var items = seen[g].filter(function(s){
+        return !q || (s.name + " " + s.title + " " + s.group).toLowerCase().indexOf(q) >= 0;
+      });
+      if (!items.length) return;
+      var box = el("div","idx-group");
+      box.appendChild(el("h2", null, g));
+      var ul = el("ul","idx-list");
+      items.forEach(function(s){
+        var li = el("li");
+        var b = el("button","idx-btn", s.name);
+        b.type = "button";
+        b.setAttribute("aria-current", s.id === current.id ? "true" : "false");
+        b.addEventListener("click", function(){ current = s; render(); });
+        li.appendChild(b);
+        ul.appendChild(li);
+      });
+      box.appendChild(ul);
+      wrap.appendChild(box);
+    });
+  }
+
+  function buildInputs(){
+    var form = $("inputs");
+    form.textContent = "";
+    if (current.noCalc){
+      form.appendChild(el("p","section-label", current.howTitle));
+      var list = el("ul","how");
+      current.how.forEach(function(h){
+        var li = el("li");
+        li.appendChild(el("b", null, h.l));
+        li.appendChild(el("span", null, h.r));
+        list.appendChild(li);
+      });
+      form.appendChild(list);
+      return;
+    }
+    form.appendChild(el("p","section-label","Datos del paciente"));
+    current.fields.forEach(function(fd){
+      var row = el("div","field" + (fd.type === "select" ? " wide" : ""));
+      var lab = el("label");
+      lab.setAttribute("for", "fld_" + fd.k);
+      lab.appendChild(document.createTextNode(fd.label));
+      if (fd.unit) lab.appendChild(el("span","unit", fd.unit));
+      row.appendChild(lab);
+
+      var input;
+      if (fd.type === "select"){
+        input = el("select");
+        fd.options.forEach(function(o){
+          var op = el("option", null, o.label);
+          op.value = String(o.v);
+          if (o.v === fd.def) op.selected = true;
+          input.appendChild(op);
+        });
+      } else {
+        input = el("input");
+        input.type = "number";
+        input.step = fd.step;
+        input.value = String(fd.def);
+        input.inputMode = "decimal";
+      }
+      input.id = "fld_" + fd.k;
+      input.dataset.key = fd.k;
+      input.addEventListener("input", compute);
+      input.addEventListener("change", compute);
+      row.appendChild(input);
+      form.appendChild(row);
+    });
+    form.appendChild(el("p","example-flag","Los valores precargados corresponden a un caso de ejemplo. Modificalos para calcular sobre tu paciente."));
+  }
+
+  function readValues(){
+    var v = {}, ok = true;
+    current.fields.forEach(function(fd){
+      var e = $("fld_" + fd.k);
+      var x = parseFloat(e.value);
+      if (!Number.isFinite(x)) ok = false;
+      v[fd.k] = Number.isFinite(x) ? x : NaN;
+    });
+    return ok ? v : null;
+  }
+
+  function table(cols, rows, activeIdx){
+    var scroll = el("div","scroll-x");
+    var t = el("table");
+    var thead = el("thead"), tr = el("tr");
+    cols.forEach(function(c){ tr.appendChild(el("th", null, c)); });
+    thead.appendChild(tr); t.appendChild(thead);
+    var tb = el("tbody");
+    rows.forEach(function(r, i){
+      var row = el("tr");
+      if (activeIdx === i) row.className = "active";
+      r.forEach(function(c, j){
+        var td = el("td", j > 0 && c.length < 24 ? "num" : null, c);
+        row.appendChild(td);
+      });
+      tb.appendChild(row);
+    });
+    t.appendChild(tb);
+    scroll.appendChild(t);
+    return scroll;
+  }
+
+  function compute(){
+    var out = $("results");
+    out.textContent = "";
+
+    if (current.noCalc){
+      var fb = el("div","value-block");
+      fb.appendChild(el("p","block-label","Fórmula publicada"));
+      fb.appendChild(el("p","formula", current.formula));
+      var fn = el("ul","notes");
+      fn.appendChild(el("li", null, current.howNote));
+      fb.appendChild(fn);
+      out.appendChild(fb);
+      panels(out, -1);
+      return;
+    }
+
+    var v = readValues();
+    var res = null;
+    if (v){
+      try { res = current.compute(v); } catch (e) { res = null; }
+    }
+
+    // Bloque 1 — valor calculado
+    var vb = el("div","value-block");
+    vb.appendChild(el("p","block-label","Valor calculado"));
+    var line = el("div","value-line");
+    var num = el("span","value-num" + (res && res.kind === "text" ? " is-text" : ""), res ? res.value : "—");
+    line.appendChild(num);
+    line.appendChild(el("span","value-unit", res ? (res.unit || "") : "completá todos los campos"));
+    vb.appendChild(line);
+
+    if (res && res.detail && res.detail.length){
+      var ul = el("ul","detail");
+      res.detail.forEach(function(d){
+        var li = el("li");
+        li.appendChild(el("span", null, d.l));
+        li.appendChild(el("b", null, d.r));
+        ul.appendChild(li);
+      });
+      vb.appendChild(ul);
+    }
+    if (res && res.notes && res.notes.length){
+      var nl = el("ul","notes");
+      res.notes.forEach(function(n){ nl.appendChild(el("li", null, n)); });
+      vb.appendChild(nl);
+    }
+    out.appendChild(vb);
+    panels(out, res ? res.band : -1);
+  }
+
+  function panels(out, activeBand){
+    // Bloque 2 — clasificación
+    var p2 = el("div","panel");
+    p2.appendChild(el("p","block-label", current.bandsTitle));
+    p2.appendChild(table(current.bandsCols, current.bands, activeBand));
+    out.appendChild(p2);
+
+    // Bloque intermedio — tabla de referencia (sólo algunos scores)
+    if (current.ref){
+      var pr = el("div","panel");
+      pr.appendChild(el("p","block-label", current.refTitle));
+      pr.appendChild(table(current.refCols, current.ref, -1));
+      if (current.refNote) pr.appendChild(el("p","panel-note", current.refNote));
+      out.appendChild(pr);
+    }
+
+    // Bloque 3 — estimaciones publicadas
+    var p3 = el("div","panel");
+    p3.appendChild(el("p","block-label", current.estTitle));
+    p3.appendChild(table(current.estCols, current.est, -1));
+    if (current.estNote) p3.appendChild(el("p","panel-note", current.estNote));
+    p3.appendChild(el("p","src", current.src));
+    out.appendChild(p3);
+  }
+
+  function render(){
+    $("kicker").textContent = current.group;
+    $("title").textContent = current.title;
+    $("sub").textContent = current.sub;
+    buildIndex($("q").value);
+    buildInputs();
+    compute();
+  }
+
+  $("q").addEventListener("input", function(){ buildIndex(this.value); });
+  render();
+
+  // ---- instalación como aplicación (sólo cuando se sirve desde un origen web)
+  var deferred = null, btn = $("install");
+  window.addEventListener("beforeinstallprompt", function(e){
+    e.preventDefault();
+    deferred = e;
+    if (btn) btn.hidden = false;
+  });
+  if (btn) btn.addEventListener("click", function(){
+    if (!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.then(function(){ deferred = null; btn.hidden = true; });
+  });
+  window.addEventListener("appinstalled", function(){ if (btn) btn.hidden = true; });
+
+  var secure = location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  if ("serviceWorker" in navigator && secure && document.querySelector('link[rel="manifest"]')){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("./sw.js").catch(function(){ /* sin service worker: la página funciona igual */ });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

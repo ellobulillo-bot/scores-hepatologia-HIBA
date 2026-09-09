@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Scores en Hepatología">
+  <rect width="512" height="512" fill="#0E5257"/>
+  <g transform="translate(256 256) scale(0.74) translate(-256 -252)">
+  <path fill="#F4F6F5" d="M48 244
+    C48 172 104 124 184 122
+    C234 120 264 130 276 148
+    C288 130 320 118 366 120
+    C418 123 460 146 464 184
+    C467 208 452 226 424 238
+    C384 254 344 274 314 296
+    C302 305 294 316 290 330
+    C286 356 262 368 240 358
+    C231 354 226 346 222 338
+    C190 380 132 396 94 372
+    C62 352 48 300 48 244 Z"/>
+  <rect x="114" y="168" width="142" height="184" rx="20" fill="#0E5257"/>
+  <rect x="132" y="188" width="106" height="30" rx="7" fill="#F4F6F5"/>
+  <g fill="#F4F6F5">
+    <rect x="132" y="234" width="27" height="26" rx="6"/>
+    <rect x="171" y="234" width="27" height="26" rx="6"/>
+    <rect x="210" y="234" width="27" height="26" rx="6"/>
+    <rect x="132" y="272" width="27" height="26" rx="6"/>
+    <rect x="171" y="272" width="27" height="26" rx="6"/>
+    <rect x="210" y="272" width="27" height="26" rx="6"/>
+    <rect x="132" y="310" width="27" height="26" rx="6"/>
+    <rect x="171" y="310" width="27" height="26" rx="6"/>
+    <rect x="210" y="310" width="27" height="26" rx="6"/>
+  </g>
+  </g>
+</svg>
