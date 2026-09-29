@@ -174,6 +174,19 @@ h1{
   margin-bottom:18px;
 }
 .search::placeholder{color:var(--ink-3)}
+.idx-select{
+  display:none;
+  width:100%;
+  font:inherit;
+  font-size:15px;
+  font-weight:600;
+  color:var(--ink);
+  background:var(--surface);
+  border:1px solid var(--accent);
+  border-radius:4px;
+  padding:11px 12px;
+}
+.idx-select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .idx-group{margin-bottom:18px}
 .idx-group h2{
   font-family:var(--mono);
@@ -393,18 +406,16 @@ tbody tr.active td:first-child{padding-left:10px}
 .disclaimer strong{color:var(--ink);font-weight:600}
 
 @media (max-width:880px){
-  .layout{grid-template-columns:minmax(0,1fr);gap:26px}
+  .layout{grid-template-columns:minmax(0,1fr);gap:22px}
   .index{position:static}
   .calc-body{grid-template-columns:minmax(0,1fr);gap:26px}
-  .idx-list{flex-direction:row;flex-wrap:wrap;gap:2px 4px}
-  .idx-btn{
-    width:auto;
-    border:1px solid var(--rule-strong);
-    border-radius:99px;
-    padding:3px 11px;
-    font-size:12.5px;
-  }
-  .idx-btn[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+  /* En pantalla chica el listado completo empujaba la calculadora fuera de la
+     vista: se reemplaza por un desplegable nativo, agrupado igual que el índice. */
+  .search, #idx{display:none}
+  .idx-select{display:block}
+  .field{grid-template-columns:minmax(0,1fr) 116px}
+  .field input, .field select{font-size:16px;padding:8px}
+  .value-num{font-size:40px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -429,7 +440,7 @@ tbody tr.active td:first-child{padding-left:10px}
       <div>
         <p class="eyebrow">Hospital Italiano de Buenos Aires · Sección Hepatología</p>
         <h1>Scores en Hepatología</h1>
-        <p class="standfirst">Dieciséis puntajes pronósticos y diagnósticos de uso corriente, con la fórmula original, los rangos de clasificación y las estimaciones publicadas presentados por separado.</p>
+        <p class="standfirst">Veintidós puntajes pronósticos y diagnósticos de uso corriente, con la fórmula original, los rangos de clasificación y las estimaciones publicadas presentados por separado.</p>
       </div>
     </div>
     <div class="masthead-side">
@@ -441,6 +452,7 @@ tbody tr.active td:first-child{padding-left:10px}
   <div class="layout">
     <nav class="index" aria-label="Índice de scores">
       <input class="search" id="q" type="search" placeholder="Buscar score…" aria-label="Buscar score">
+      <select class="idx-select" id="qsel" aria-label="Elegir score"></select>
       <div id="idx"></div>
     </nav>
 
@@ -470,6 +482,14 @@ tbody tr.active td:first-child{padding-left:10px}
   var UREA = 6.006;    // mg/dL -> mmol/L
 
   function clamp(x, lo, hi){ return Math.min(hi, Math.max(lo, x)); }
+  // Acepta coma o punto como separador decimal (el teclado numérico de iOS ofrece coma).
+  function num(v){
+    if (v == null) return NaN;
+    var t = String(v).trim().replace(/\s|\u00a0/g, "").replace(/\u2212/g, "-").replace(",", ".");
+    if (t === "" || t === "-" || t === ".") return NaN;
+    var x = parseFloat(t);
+    return Number.isFinite(x) ? x : NaN;
+  }
   function f(x, d){
     var s = (Math.round(x * Math.pow(10,d)) / Math.pow(10,d)).toFixed(d);
     return s.replace(".", ",").replace("-", "−");
@@ -668,6 +688,99 @@ tbody tr.active td:first-child{padding-left:10px}
     src:"Johnson PJ, Berhane S, Kagebayashi C, et al. Assessment of liver function in patients with hepatocellular carcinoma: a new evidence-based approach — the ALBI grade. J Clin Oncol 2015;33:550–558."
   },
 
+  // ---------------------------------------------------------------- ANTICIPATE
+  {
+    id:"anticipate", group:"Hipertensión portal", name:"ANTICIPATE",
+    title:"ANTICIPATE",
+    sub:"Estima la probabilidad de hipertensión portal clínicamente significativa (GPVH ≥ 10 mmHg) en enfermedad hepática crónica avanzada compensada, a partir de la elastografía y el recuento de plaquetas. Es el modelo que sostiene los criterios de Baveno VII.",
+    fields:[
+      N("lsm","Rigidez hepática (elastografía de transición)","kPa",22.0,"0.1"),
+      N("plq","Plaquetas","×10⁹/L",128,"1")
+    ],
+    compute:function(v){
+      var plq = Math.min(v.plq, 150);
+      var lg = -6.3320165 + 3.1001014 * ln(v.lsm) - 0.020481545 * plq;
+      var pr = 1 / (1 + exp(-lg));
+      var band;
+      if (v.lsm <= 15 && v.plq >= 150) band = 0;
+      else if (pr >= 0.75 || v.lsm >= 25) band = 2;
+      else band = 1;
+      return {
+        value:f(pr * 100, 1), unit:"% de probabilidad de HPCS",
+        band: band,
+        detail:[
+          {l:"Predictor lineal (logit)", r:f(lg,3)},
+          {l:"ln (rigidez hepática)", r:f(ln(v.lsm),3)},
+          {l:"Plaquetas utilizadas", r:f(plq,0) + " ×10⁹/L"}
+        ],
+        notes: v.plq > 150 ? ["Plaquetas > 150 ×10⁹/L: el modelo las ingresa truncadas en 150, según su especificación original."] : []
+      };
+    },
+    bandsTitle:"Lectura según Baveno VII",
+    bandsCols:["Categoría","Criterio"],
+    bands:[
+      ["Descarta HPCS","Rigidez ≤ 15 kPa y plaquetas ≥ 150 ×10⁹/L"],
+      ["Zona indeterminada","No cumple criterios de descarte ni de confirmación"],
+      ["Confirma HPCS","Riesgo estimado ≥ 75 % por el modelo, o rigidez ≥ 25 kPa"]
+    ],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Criterio","Rendimiento"],
+    est:[
+      ["Rigidez ≥ 25 kPa","VPP agrupado 92 % (salvo MASLD con obesidad)"],
+      ["Umbral de riesgo ≥ 75 % del modelo","VPP 95 %"],
+      ["Rigidez ≤ 15 kPa + plaquetas ≥ 150","VPN 99 %"]
+    ],
+    estNote:"Rendimiento agrupado del metaanálisis de datos individuales de Bañares (2025), que propone reemplazar el corte único de 25 kPa por el umbral de riesgo del modelo. Confirmar HPCS tiene consecuencia terapéutica directa: indica betabloqueantes no selectivos para prevenir la descompensación.",
+    src:"Abraldes JG, Bureau C, Stefanescu H, et al. Hepatology 2016;64:2173–2184. · Bañares J, Pons M, Reiberger T, et al. J Hepatol 2025;84:543–553."
+  },
+
+  // ---------------------------------------------------------------- ANTICIPATE-NASH
+  {
+    id:"anticipatenash", group:"Hipertensión portal", name:"ANTICIPATE-NASH",
+    title:"ANTICIPATE-NASH",
+    sub:"Versión del modelo para enfermedad hepática esteatósica metabólica, que agrega el índice de masa corporal. En el paciente obeso el corte de 25 kPa sobrestima la hipertensión portal, y esta variante corrige ese sesgo.",
+    fields:[
+      N("lsm","Rigidez hepática (elastografía de transición)","kPa",24.0,"0.1"),
+      N("plq","Plaquetas","×10⁹/L",136,"1"),
+      N("imc","Índice de masa corporal","kg/m²",34.0,"0.1")
+    ],
+    compute:function(v){
+      var lg = -3.9529402 + 2.2835809 * ln(v.lsm) - 0.033777725 * v.imc - 0.014490895 * v.plq;
+      var pr = 1 / (1 + exp(-lg));
+      var band;
+      if (v.lsm <= 15 && v.plq >= 150) band = 0;
+      else if (pr >= 0.75) band = 2;
+      else band = 1;
+      return {
+        value:f(pr * 100, 1), unit:"% de probabilidad de HPCS",
+        band: band,
+        detail:[
+          {l:"Predictor lineal (logit)", r:f(lg,3)},
+          {l:"ln (rigidez hepática)", r:f(ln(v.lsm),3)},
+          {l:"Aporte del IMC", r:f(-0.033777725 * v.imc, 3)},
+          {l:"Aporte de las plaquetas", r:f(-0.014490895 * v.plq, 3)}
+        ],
+        notes: v.imc >= 30 ? ["IMC ≥ 30 kg/m²: es justamente la población en la que el corte aislado de 25 kPa pierde valor predictivo positivo."] : []
+      };
+    },
+    bandsTitle:"Lectura según Baveno VII",
+    bandsCols:["Categoría","Criterio"],
+    bands:[
+      ["Descarta HPCS","Rigidez ≤ 15 kPa y plaquetas ≥ 150 ×10⁹/L"],
+      ["Zona indeterminada","No cumple criterios de descarte ni de confirmación"],
+      ["Confirma HPCS","Riesgo estimado ≥ 75 % por el modelo"]
+    ],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Situación","Rendimiento"],
+    est:[
+      ["Rigidez ≥ 25 kPa en MASLD con obesidad","VPP 63 – 67 % solamente"],
+      ["Umbral de riesgo ≥ 75 % del modelo en ese grupo","VPP 83 %"],
+      ["Prevalencia de HPCS en cACLD por MASLD","61 %, y 53 % en obesos, frente a más de 90 % en otras etiologías"]
+    ],
+    estNote:"A diferencia del modelo original, este no trunca el recuento de plaquetas. La menor prevalencia de hipertensión portal en la enfermedad esteatósica explica por qué el mismo valor de rigidez significa algo distinto en este grupo.",
+    src:"Pons M, Augustin S, Scheiner B, et al. Am J Gastroenterol 2021;116:723–732. · Bañares J, et al. J Hepatol 2025;84:543–553."
+  },
+
   // ---------------------------------------------------------------- FIB-4
   {
     id:"fib4", group:"Fibrosis no invasiva", name:"FIB-4",
@@ -770,6 +883,89 @@ tbody tr.active td:first-child{padding-left:10px}
     est:[["< −1,455","VPN 88 – 93 %"],["> 0,676","VPP 79 – 90 %"]],
     estNote:"En la cohorte de derivación y validación de Angulo, la aplicación de ambos cortes evitó la biopsia en aproximadamente tres de cada cuatro pacientes.",
     src:"Angulo P, Hui JM, Marchesini G, et al. The NAFLD fibrosis score: a noninvasive system that identifies liver fibrosis in patients with NAFLD. Hepatology 2007;45:846–854."
+  },
+
+  // ---------------------------------------------------------------- GALAD
+  {
+    id:"galad", group:"Hepatocarcinoma", name:"GALAD",
+    title:"GALAD",
+    sub:"Modelo de detección de hepatocarcinoma que combina sexo, edad y tres biomarcadores séricos. Su interés está en la detección de tumores en estadio temprano, donde la alfafetoproteína aislada rinde poco.",
+    fields:[
+      S("sexo","Sexo",1,[{v:0,label:"Femenino"},{v:1,label:"Masculino"}]),
+      N("edad","Edad","años",64,"1"),
+      N("afp","Alfafetoproteína (AFP)","ng/mL",18.0,"0.1"),
+      N("l3","AFP-L3","%",8.0,"0.1"),
+      N("dcp","DCP (PIVKA-II)","mAU/mL",45.0,"0.1")
+    ],
+    compute:function(v){
+      var z = -10.08 + 0.09 * v.edad + 1.67 * v.sexo + 2.34 * log10(v.afp) + 0.04 * v.l3 + 1.33 * log10(v.dcp);
+      var pr = 1 / (1 + exp(-z));
+      return {
+        value:f(z,2), unit:"puntos GALAD",
+        band: z < -0.76 ? 0 : (z <= 0.88 ? 1 : 2),
+        detail:[
+          {l:"Probabilidad estimada", r:f(pr * 100, 1) + " %"},
+          {l:"log₁₀ (AFP)", r:f(log10(v.afp),3)},
+          {l:"log₁₀ (DCP)", r:f(log10(v.dcp),3)},
+          {l:"Aporte del sexo", r:f(1.67 * v.sexo, 2)}
+        ],
+        notes:["El DCP y la AFP-L3 son dependientes del método: los coeficientes se derivaron con la plataforma µTASWako. Valores obtenidos con otros ensayos no son intercambiables."]
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Zona","GALAD"],
+    bands:[
+      ["Por debajo del corte sensible","< −0,76"],
+      ["Entre ambos cortes","−0,76 a 0,88"],
+      ["Por encima del corte específico","> 0,88"]
+    ],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Corte","Sensibilidad","Especificidad"],
+    est:[["−0,76","91 %","85 %"],["0,88","80 %","97 %"]],
+    estNote:"El corte a usar depende del objetivo: el más bajo privilegia la detección en programas de vigilancia, el más alto reduce los falsos positivos cuando el resultado desencadena estudios de imagen. El rendimiento cae en poblaciones con baja prevalencia de hepatocarcinoma.",
+    src:"Johnson PJ, Pirrie SJ, Cox TF, et al. Cancer Epidemiol Biomarkers Prev 2014;23:144–153. · Cortes del catálogo de Mayo Clinic Laboratories."
+  },
+
+  // ---------------------------------------------------------------- RETREAT
+  {
+    id:"retreat", group:"Hepatocarcinoma", name:"RETREAT",
+    title:"RETREAT",
+    sub:"Estima el riesgo de recurrencia de hepatocarcinoma después del trasplante, combinando la alfafetoproteína previa al procedimiento con los hallazgos del explante. Su uso principal es decidir la intensidad del seguimiento oncológico postrasplante.",
+    fields:[
+      N("afp","AFP al momento del trasplante","ng/mL",35.0,"0.1"),
+      S("mvi","Invasión microvascular en el explante",0,YN),
+      N("diam","Diámetro del tumor viable más grande","cm",2.5,"0.1"),
+      N("nles","Número de tumores viables","",1,"1")
+    ],
+    compute:function(v){
+      var suma = v.nles <= 0 ? 0 : v.diam + v.nles;
+      var pa = v.afp <= 20 ? 0 : (v.afp <= 99 ? 1 : (v.afp <= 999 ? 2 : 3));
+      var pm = v.mvi ? 2 : 0;
+      var ps = suma === 0 ? 0 : (suma < 5 ? 1 : (suma < 10 ? 2 : 3));
+      var t = pa + pm + ps;
+      return {
+        value:String(t), unit:"de 8 puntos",
+        band: t === 0 ? 0 : (t <= 2 ? 1 : (t <= 4 ? 2 : 3)),
+        detail:[
+          {l:"AFP", r:pa + " pto" + (pa!==1?"s":"")},
+          {l:"Invasión microvascular", r:pm + " ptos"},
+          {l:"Suma diámetro + número", r:f(suma,1) + " → " + ps + " pto" + (ps!==1?"s":"")}
+        ],
+        notes: v.nles <= 0 ? ["Sin tumor viable (necrosis completa tras terapia locorregional): la suma se computa como 0."] : []
+      };
+    },
+    bandsTitle:"Estratos de riesgo",
+    bandsCols:["Estrato","RETREAT"],
+    bands:[["Muy bajo","0"],["Bajo","1 – 2"],["Intermedio","3 – 4"],["Alto","≥ 5"]],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Puntaje","Recurrencia a 3 años","Supervivencia a 3 años"],
+    est:[
+      ["0","1,6 %","90,7 %"],
+      ["3","8,4 %","79,9 %"],
+      ["≥ 5","29,0 %","58,3 %"]
+    ],
+    estNote:"Cifras de la validación en la base UNOS (3.276 pacientes dentro de criterios de Milán). En la cohorte de derivación, con seguimiento más largo, la recurrencia a 5 años fue menor al 3 % con puntaje 0 y superior al 75 % con puntaje ≥ 5. Los autores proponen no hacer vigilancia tumoral en los pacientes con puntaje 0.",
+    src:"Mehta N, Heimbach J, Harnois DM, et al. JAMA Oncol 2017;3:493–500. · Mehta N, Dodge JL, Roberts JP, et al. Am J Transplant 2018;18:1206–1213."
   },
 
   // ---------------------------------------------------------------- Maddrey
@@ -883,6 +1079,87 @@ tbody tr.active td:first-child{padding-left:10px}
     ],
     estNote:"El contraste entre las dos últimas filas es el argumento central del trabajo original: el beneficio de los corticoides se concentró en los pacientes con GAHS ≥ 9 y función discriminante ≥ 32.",
     src:"Forrest EH, Evans CDJ, Stewart S, et al. Analysis of factors predictive of mortality in alcoholic hepatitis and derivation and validation of the Glasgow alcoholic hepatitis score. Gut 2005;54:1174–1179."
+  },
+
+  // ---------------------------------------------------------------- UBE
+  {
+    id:"ube", group:"Consumo de alcohol", name:"Gramos de alcohol y UBE",
+    title:"Gramos de alcohol y unidades de bebida estándar",
+    sub:"Convierte una bebida concreta en gramos de alcohol puro y en unidades de bebida estándar, y ubica el consumo declarado en los umbrales de la nomenclatura MASLD / MetALD / ALD.",
+    fields:[
+      S("sexo","Sexo",1,[{v:0,label:"Femenino"},{v:1,label:"Masculino"}]),
+      N("vol","Volumen de la bebida","mL",330,"1"),
+      N("grad","Graduación alcohólica","% vol",5.0,"0.1"),
+      N("nsem","Bebidas por semana","",14,"1")
+    ],
+    compute:function(v){
+      var gb = v.vol * (v.grad / 100) * 0.789;
+      var gs = gb * v.nsem;
+      var gd = gs / 7;
+      var lim = v.sexo === 1 ? [30, 60] : [20, 50];
+      var band = gd < lim[0] ? 0 : (gd <= lim[1] ? 1 : 2);
+      return {
+        value:f(gb,1), unit:"g de alcohol por bebida",
+        band: band,
+        detail:[
+          {l:"UBE por bebida (1 UBE = 10 g)", r:f(gb / 10, 2)},
+          {l:"Gramos por semana", r:f(gs,0) + " g"},
+          {l:"Gramos por día", r:f(gd,1) + " g"},
+          {l:"Tragos estándar de EE. UU. por semana (14 g)", r:f(gs / 14, 1)},
+          {l:"Umbral aplicado según sexo", r:lim[0] + " – " + lim[1] + " g/día"}
+        ]
+      };
+    },
+    bandsTitle:"Nomenclatura por consumo diario",
+    bandsCols:["Categoría","Mujeres","Varones"],
+    bands:[
+      ["MASLD","< 20 g/día","< 30 g/día"],
+      ["MetALD","20 – 50 g/día","30 – 60 g/día"],
+      ["ALD","> 50 g/día","> 60 g/día"]
+    ],
+    estTitle:"Equivalencias y supuestos",
+    estCols:["Concepto","Valor"],
+    est:[
+      ["Densidad del etanol","0,789 g/mL a 20 °C"],
+      ["Unidad de bebida estándar (España, OMS)","10 g de alcohol puro"],
+      ["Trago estándar (Estados Unidos)","14 g de alcohol puro"],
+      ["Ejemplos aproximados","Cerveza 330 mL al 5 % ≈ 13 g · Vino 150 mL al 13 % ≈ 15 g · Destilado 45 mL al 40 % ≈ 14 g"]
+    ],
+    estNote:"El cálculo asume que la graduación declarada en la etiqueta es exacta y que el volumen servido es el ingresado, dos supuestos que rara vez se cumplen en el consumo doméstico: los volúmenes servidos a ojo suelen subestimarse. Los umbrales corresponden a la nomenclatura consensuada de 2023 para enfermedad hepática esteatósica.",
+    src:"Rinella ME, Lazarus JV, Ratziu V, et al. A multisociety Delphi consensus statement on new fatty liver disease nomenclature. Hepatology 2023;78:1966–1986."
+  },
+
+  // ---------------------------------------------------------------- MAPI
+  {
+    id:"mapi", group:"Consumo de alcohol", name:"MAPI",
+    title:"MAPI — MetALD-ALD Prediction Index",
+    sub:"Panel de biomarcadores indirectos desarrollado contra fosfatidiletanol para detectar consumo excesivo de alcohol en pacientes con enfermedad hepática esteatósica. Su propósito es orientar a quién pedirle el PEth confirmatorio, no reemplazarlo.",
+    noCalc:true,
+    formula:"MAPI = regresión logística sobre sexo, volumen corpuscular medio, GGT, colesterol HDL y hemoglobina glicosilada A1c",
+    howTitle:"Las cinco variables del modelo",
+    how:[
+      {l:"Sexo", r:"Variable dicotómica del modelo."},
+      {l:"Volumen corpuscular medio", r:"Macrocitosis como marcador indirecto clásico del consumo sostenido."},
+      {l:"Gamma-glutamil transferasa", r:"El marcador indirecto de uso más extendido, y el menos específico en forma aislada."},
+      {l:"Colesterol HDL", r:"Se eleva con el consumo de alcohol, a diferencia del patrón metabólico."},
+      {l:"Hemoglobina glicosilada A1c", r:"Aporta el contrapeso metabólico que separa MASLD de MetALD."}
+    ],
+    howNote:"Los coeficientes del modelo están en el material suplementario de la publicación original y no están disponibles en acceso abierto, de modo que esta página presenta las variables y el rendimiento pero no calcula el índice. Si conseguís la ecuación, se agrega el cálculo sin problema.",
+    bandsTitle:"Qué distingue",
+    bandsCols:["Resultado","Interpretación"],
+    bands:[
+      ["MAPI bajo","Patrón compatible con MASLD sin consumo excesivo de alcohol"],
+      ["MAPI alto","Sugiere MetALD o ALD: justifica confirmar con fosfatidiletanol"]
+    ],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Cohorte","AUROC"],
+    est:[
+      ["Derivación (503 adultos, sur de California)","0,76"],
+      ["Validación externa (1.777 adultos, Suecia)","0,75"],
+      ["Comparación","Fue el mejor de los biomarcadores indirectos evaluados"]
+    ],
+    estNote:"El patrón de referencia fue el fosfatidiletanol, un marcador directo con ventana de detección de semanas, y no el consumo autorreportado. Ese detalle es lo que le da valor: el modelo se entrenó contra consumo objetivamente medido, no contra lo que el paciente declara.",
+    src:"Tavaglione F, Vaz J, Jamialahmadi O, et al. The MetALD-ALD Prediction Index: a phosphatidylethanol-driven biomarker panel. Gastroenterology 2026;170:1033–1046."
   },
 
   // ---------------------------------------------------------------- King's College
@@ -1242,6 +1519,21 @@ tbody tr.active td:first-child{padding-left:10px}
       box.appendChild(ul);
       wrap.appendChild(box);
     });
+
+    // Mismo contenido para el desplegable de pantalla chica.
+    var sel = $("qsel");
+    sel.textContent = "";
+    groups.forEach(function(g){
+      var og = document.createElement("optgroup");
+      og.label = g;
+      seen[g].forEach(function(sc){
+        var op = el("option", null, sc.name);
+        op.value = sc.id;
+        if (sc.id === current.id) op.selected = true;
+        og.appendChild(op);
+      });
+      sel.appendChild(og);
+    });
   }
 
   function buildInputs(){
@@ -1279,10 +1571,25 @@ tbody tr.active td:first-child{padding-left:10px}
         });
       } else {
         input = el("input");
-        input.type = "number";
-        input.step = fd.step;
-        input.value = String(fd.def);
-        input.inputMode = "decimal";
+        // type="text" + inputmode="decimal": en iOS el teclado de type="number"
+        // no ofrece separador decimal y rechaza la coma.
+        input.type = "text";
+        input.setAttribute("inputmode", "decimal");
+        input.setAttribute("enterkeyhint", "done");
+        input.setAttribute("autocomplete", "off");
+        input.setAttribute("autocorrect", "off");
+        input.setAttribute("autocapitalize", "off");
+        input.spellcheck = false;
+        input.value = String(fd.def).replace(".", ",");
+        input.addEventListener("input", function(ev){
+          var el2 = ev.target, v = el2.value;
+          var c = v.replace(/[^0-9.,\-]/g, "");
+          if (c !== v){
+            var pos = el2.selectionStart;
+            el2.value = c;
+            try { el2.setSelectionRange(pos - 1, pos - 1); } catch (err) {}
+          }
+        });
       }
       input.id = "fld_" + fd.k;
       input.dataset.key = fd.k;
@@ -1298,7 +1605,7 @@ tbody tr.active td:first-child{padding-left:10px}
     var v = {}, ok = true;
     current.fields.forEach(function(fd){
       var e = $("fld_" + fd.k);
-      var x = parseFloat(e.value);
+      var x = num(e.value);
       if (!Number.isFinite(x)) ok = false;
       v[fd.k] = Number.isFinite(x) ? x : NaN;
     });
@@ -1411,6 +1718,10 @@ tbody tr.active td:first-child{padding-left:10px}
   }
 
   $("q").addEventListener("input", function(){ buildIndex(this.value); });
+  $("qsel").addEventListener("change", function(){
+    var found = SCORES.filter(function(sc){ return sc.id === this.value; }, this)[0];
+    if (found){ current = found; render(); window.scrollTo({top:0, behavior:"instant"}); }
+  });
   render();
 
   // ---- instalación como aplicación (sólo cuando se sirve desde un origen web)
