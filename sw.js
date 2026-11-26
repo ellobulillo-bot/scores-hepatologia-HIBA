@@ -2,7 +2,7 @@
    Estrategia: la aplicación se precarga en caché y se sirve desde ahí, de modo que
    funcione sin conexión. Al publicar una versión nueva, subir el número de CACHE. */
 
-const CACHE = "scores-hep-v2";
+const CACHE = "scores-hep-v3";
 
 const SHELL = [
   "./",

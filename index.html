@@ -653,11 +653,11 @@ tbody tr.active td:first-child{padding-left:10px}
     src:"Kamath PS, et al. Hepatology 2001;33:464–470. · Kim WR, et al. N Engl J Med 2008;359:1018–1026. · Política OPTN vigente desde enero de 2016."
   },
 
-  // ---------------------------------------------------------------- ALBI
+  // ---------------------------------------------------------------- ALBI / mALBI
   {
-    id:"albi", group:"Enfermedad hepática crónica", name:"ALBI",
-    title:"Grado ALBI (albúmina–bilirrubina)",
-    sub:"Estima la función hepática con sólo dos variables objetivas, sin los componentes subjetivos del Child-Pugh. Desarrollado en hepatocarcinoma y luego extendido a otras poblaciones.",
+    id:"albi", group:"Enfermedad hepática crónica", name:"ALBI y mALBI",
+    title:"Grado ALBI y ALBI modificado",
+    sub:"Estima la función hepática con sólo dos variables objetivas, sin los componentes subjetivos del Child-Pugh. El ALBI modificado subdivide el grado 2 en 2a y 2b, que es la separación que importa para decidir tratamiento en hepatocarcinoma.",
     fields:[
       N("bili","Bilirrubina total","mg/dL",1.6,"0.1"),
       N("alb","Albúmina","g/dL",3.4,"0.1")
@@ -665,27 +665,44 @@ tbody tr.active td:first-child{padding-left:10px}
     compute:function(v){
       var bu = v.bili * BILI, ag = v.alb * 10;
       var s = 0.66 * log10(bu) - 0.085 * ag;
+      var gi = s <= -2.60 ? 0 : (s <= -1.39 ? 1 : 2);
+      var mi = s <= -2.60 ? 0 : (s < -2.27 ? 1 : (s <= -1.39 ? 2 : 3));
+      var mn = ["Grado 1", "Grado 2a", "Grado 2b", "Grado 3"][mi];
       return {
         value:f(s,2), unit:"",
-        band: s <= -2.60 ? 0 : (s <= -1.39 ? 1 : 2),
+        band: gi,
+        refBand: mi,
         detail:[
+          {l:"Grado ALBI", r:["Grado 1","Grado 2","Grado 3"][gi]},
+          {l:"Grado mALBI", r:mn},
           {l:"Bilirrubina convertida", r:f(bu,1) + " µmol/L"},
           {l:"Albúmina convertida", r:f(ag,1) + " g/L"},
           {l:"log₁₀ (bilirrubina)", r:f(log10(bu),3)}
         ]
       };
     },
-    bandsTitle:"Clasificación",
+    bandsTitle:"Clasificación ALBI original",
     bandsCols:["Grado","Puntaje ALBI"],
     bands:[["Grado 1","≤ −2,60"],["Grado 2","> −2,60 y ≤ −1,39"],["Grado 3","> −1,39"]],
+    refTitle:"Clasificación ALBI modificado (mALBI)",
+    refCols:["Grado","Puntaje ALBI"],
+    ref:[
+      ["Grado 1","≤ −2,60"],
+      ["Grado 2a","> −2,60 y < −2,27"],
+      ["Grado 2b","≥ −2,27 y ≤ −1,39"],
+      ["Grado 3","> −1,39"]
+    ],
+    refNote:"El mALBI conserva los grados 1 y 3 del ALBI original y sólo parte el grado 2. El corte de −2,270 se fijó contra una retención de verde de indocianina a los 15 minutos del 30 %, que es el umbral de los criterios de Makuuchi para considerar una subsegmentectomía.",
     estTitle:"Estimaciones publicadas",
     estCols:["Observación",""],
     est:[
       ["Supervivencia","Decrece de forma monótona del grado 1 al 3 en todos los estadios BCLC"],
-      ["Dentro de Child-Pugh A","Separa dos subgrupos con pronóstico claramente distinto"]
+      ["Dentro de Child-Pugh A","Separa dos subgrupos con pronóstico claramente distinto"],
+      ["mALBI 1 / 2a frente a 2b / 3","En hepatocarcinoma tratado con lenvatinib, el mALBI ≥ 2b fue el único factor pronóstico independiente de mortalidad, y discriminó mejor que el puntaje de Child-Pugh"],
+      ["Child-Pugh 5 puntos","Aun dentro de ese grupo homogéneo, el mALBI 2b / 3 identifica peor supervivencia"]
     ],
-    estNote:"La mediana de supervivencia por grado depende fuertemente de la cohorte (hepatocarcinoma tratado, cirrosis no tumoral, resección) y no se transporta entre poblaciones; consulte las cifras de la serie que corresponda a su paciente.",
-    src:"Johnson PJ, Berhane S, Kagebayashi C, et al. Assessment of liver function in patients with hepatocellular carcinoma: a new evidence-based approach — the ALBI grade. J Clin Oncol 2015;33:550–558."
+    estNote:"La mediana de supervivencia por grado depende fuertemente de la cohorte (hepatocarcinoma tratado, cirrosis no tumoral, resección) y no se transporta entre poblaciones; conviene usar las cifras de la serie que corresponda al paciente. El valor práctico del mALBI está en la frontera 2a / 2b, que separa a quienes toleran terapia sistémica o resección de quienes no.",
+    src:"Johnson PJ, Berhane S, Kagebayashi C, et al. J Clin Oncol 2015;33:550–558. · Hiraoka A, Kumada T, Tsuji K, et al. Validation of modified ALBI grade for more detailed assessment of hepatic function in hepatocellular carcinoma patients: a multicenter analysis. Liver Cancer 2019;8:121–129. · Hiraoka A, et al. Cancer Med 2019;8:3719–3728. · Tada T, et al. Sci Rep 2021;11:14474."
   },
 
   // ---------------------------------------------------------------- ANTICIPATE
@@ -1645,7 +1662,7 @@ tbody tr.active td:first-child{padding-left:10px}
       fn.appendChild(el("li", null, current.howNote));
       fb.appendChild(fn);
       out.appendChild(fb);
-      panels(out, -1);
+      panels(out, -1, -1);
       return;
     }
 
@@ -1680,10 +1697,10 @@ tbody tr.active td:first-child{padding-left:10px}
       vb.appendChild(nl);
     }
     out.appendChild(vb);
-    panels(out, res ? res.band : -1);
+    panels(out, res ? res.band : -1, res && res.refBand != null ? res.refBand : -1);
   }
 
-  function panels(out, activeBand){
+  function panels(out, activeBand, activeRef){
     // Bloque 2 — clasificación
     var p2 = el("div","panel");
     p2.appendChild(el("p","block-label", current.bandsTitle));
@@ -1694,7 +1711,7 @@ tbody tr.active td:first-child{padding-left:10px}
     if (current.ref){
       var pr = el("div","panel");
       pr.appendChild(el("p","block-label", current.refTitle));
-      pr.appendChild(table(current.refCols, current.ref, -1));
+      pr.appendChild(table(current.refCols, current.ref, activeRef == null ? -1 : activeRef));
       if (current.refNote) pr.appendChild(el("p","panel-note", current.refNote));
       out.appendChild(pr);
     }
