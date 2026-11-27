@@ -440,7 +440,7 @@ tbody tr.active td:first-child{padding-left:10px}
       <div>
         <p class="eyebrow">Hospital Italiano de Buenos Aires · Sección Hepatología</p>
         <h1>Scores en Hepatología</h1>
-        <p class="standfirst">Veintidós puntajes pronósticos y diagnósticos de uso corriente, con la fórmula original, los rangos de clasificación y las estimaciones publicadas presentados por separado.</p>
+        <p class="standfirst">Veintiséis puntajes pronósticos y diagnósticos de uso corriente, con la fórmula original, los rangos de clasificación y las estimaciones publicadas presentados por separado.</p>
       </div>
     </div>
     <div class="masthead-side">
@@ -798,6 +798,40 @@ tbody tr.active td:first-child{padding-left:10px}
     src:"Pons M, Augustin S, Scheiner B, et al. Am J Gastroenterol 2021;116:723–732. · Bañares J, et al. J Hepatol 2025;84:543–553."
   },
 
+  // ---------------------------------------------------------------- NICER
+  {
+    id:"nicer", group:"Hipertensión portal", name:"NICER",
+    title:"NICER — Non-Invasive CSPH Estimated Risk",
+    sub:"Agrega la rigidez esplénica medida a 100 Hz al trío de rigidez hepática, plaquetas e índice de masa corporal. Superó al ANTICIPATE±NASH en discriminación de hipertensión portal clínicamente significativa, a costa de necesitar un equipamiento que no todos los centros tienen.",
+    noCalc:true,
+    formula:"NICER = regresión logística binaria sobre rigidez esplénica a 100 Hz, rigidez hepática, recuento de plaquetas e índice de masa corporal",
+    howTitle:"Las cuatro variables del modelo",
+    how:[
+      {l:"Rigidez esplénica a 100 Hz", r:"Medida con elastografía de transición controlada por vibración, usando el módulo dedicado de bazo. No es intercambiable con la rigidez esplénica obtenida por shear wave ni con la medición hepática a 50 Hz."},
+      {l:"Rigidez hepática", r:"Elastografía de transición, en kilopascales."},
+      {l:"Recuento de plaquetas", r:"El segundo predictor del ANTICIPATE, que aquí se conserva."},
+      {l:"Índice de masa corporal", r:"Corrige el mismo sesgo que motivó el ANTICIPATE-NASH."}
+    ],
+    howNote:"La ecuación con sus coeficientes no está disponible en acceso abierto, de modo que esta página presenta las variables y el rendimiento pero no calcula el riesgo. Si conseguís la ecuación del material suplementario, se agrega el cálculo. Mientras tanto, para un paciente sin rigidez esplénica disponible el ANTICIPATE o el ANTICIPATE-NASH siguen siendo la opción, y están en este mismo grupo.",
+    bandsTitle:"Qué aporta sobre el ANTICIPATE",
+    bandsCols:["Aspecto","Observación"],
+    bands:[
+      ["Discriminación","Mejor que el ANTICIPATE±NASH, con diferencia estadísticamente significativa en derivación y en validación"],
+      ["Zona indeterminada","La reduce, que es la limitación principal de los criterios de Baveno VII"],
+      ["Requisito práctico","Exige rigidez esplénica a 100 Hz, disponible sólo en equipos con el módulo de bazo"]
+    ],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Modelo","AUC derivación","AUC validación"],
+    est:[
+      ["NICER","0,889 (0,843 – 0,934)","0,906 (0,864 – 0,946)"],
+      ["ANTICIPATE±NASH","0,849 (0,794 – 0,903)","0,863 (0,810 – 0,916)"],
+      ["Rigidez esplénica sola","0,779 (0,717 – 0,842)","0,830 (0,772 – 0,887)"],
+      ["Rigidez hepática sola","0,781 (0,718 – 0,844)","0,804 (0,743 – 0,864)"]
+    ],
+    estNote:"Cohorte de 407 pacientes con enfermedad hepática crónica avanzada compensada de 16 centros europeos, con prevalencia de hipertensión portal clínicamente significativa del 59 %. En el seguimiento de esa misma cohorte, el riesgo estimado por NICER predijo descompensación tan bien como el gradiente de presión venosa hepática medido de forma invasiva, y la albúmina resultó el segundo predictor en importancia.",
+    src:"Jachs M, Odriozola A, Turon F, et al. Spleen stiffness measurement by vibration-controlled transient elastography at 100 Hz for non-invasive predicted diagnosis of clinically significant portal hypertension. Lancet Gastroenterol Hepatol 2024;9:1111–1120. · Jachs M, et al. J Hepatol 2026;84:738–748."
+  },
+
   // ---------------------------------------------------------------- FIB-4
   {
     id:"fib4", group:"Fibrosis no invasiva", name:"FIB-4",
@@ -900,6 +934,154 @@ tbody tr.active td:first-child{padding-left:10px}
     est:[["< −1,455","VPN 88 – 93 %"],["> 0,676","VPP 79 – 90 %"]],
     estNote:"En la cohorte de derivación y validación de Angulo, la aplicación de ambos cortes evitó la biopsia en aproximadamente tres de cada cuatro pacientes.",
     src:"Angulo P, Hui JM, Marchesini G, et al. The NAFLD fibrosis score: a noninvasive system that identifies liver fibrosis in patients with NAFLD. Hepatology 2007;45:846–854."
+  },
+
+  // ---------------------------------------------------------------- FAST
+  {
+    id:"fast", group:"Elastografía", name:"FAST",
+    title:"FAST — FibroScan-AST",
+    sub:"Combina en un solo paso los dos resultados del FibroScan, rigidez y CAP, con la AST. Identifica la esteatohepatitis con actividad y fibrosis significativas, que es la población objetivo de los ensayos terapéuticos.",
+    fields:[
+      N("lsm","Rigidez hepática","kPa",11.0,"0.1"),
+      N("cap","CAP (parámetro de atenuación controlada)","dB/m",320,"1"),
+      N("ast","AST (TGO)","U/L",52,"1")
+    ],
+    compute:function(v){
+      var tl = 1.07 * ln(v.lsm);
+      var tc = 2.66e-8 * Math.pow(v.cap, 3);
+      var ta = -63.3 / v.ast;
+      var z = -1.65 + tl + tc + ta;
+      var pr = 1 / (1 + exp(-z));
+      return {
+        value:f(pr,3), unit:"",
+        band: pr <= 0.35 ? 0 : (pr < 0.67 ? 1 : 2),
+        detail:[
+          {l:"Predictor lineal (z)", r:f(z,3)},
+          {l:"Aporte de la rigidez", r:f(tl,3)},
+          {l:"Aporte del CAP", r:f(tc,3)},
+          {l:"Aporte de la AST", r:f(ta,3)}
+        ]
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Zona","FAST"],
+    bands:[
+      ["Descarta esteatohepatitis de riesgo","≤ 0,35"],
+      ["Indeterminada","> 0,35 y < 0,67"],
+      ["Sugiere esteatohepatitis de riesgo","≥ 0,67"]
+    ],
+    refTitle:"Qué define el desenlace",
+    refCols:["Componente","Requisito"],
+    ref:[
+      ["Diagnóstico","Esteatohepatitis definida en la biopsia"],
+      ["Actividad","NAS ≥ 4, con al menos 1 punto en esteatosis, balonización e inflamación lobulillar"],
+      ["Fibrosis","Estadio ≥ 2"]
+    ],
+    refNote:"El FAST no busca fibrosis avanzada sino la combinación de actividad y fibrosis intermedia que define al paciente candidato a tratamiento. Por eso no reemplaza al FIB-4 ni a la rigidez aislada, que responden otra pregunta.",
+    estTitle:"Estimaciones publicadas",
+    estCols:["Corte","Sensibilidad","Especificidad","VPN / VPP"],
+    est:[
+      ["≤ 0,35 (descarte)","0,91","0,50","VPN 0,90"],
+      ["≥ 0,67 (confirmación)","0,52","0,87","VPP 0,69"],
+      ["Derivación (AUROC)","0,80","—","—"]
+    ],
+    estNote:"Rendimiento de la validación en la cohorte del NASH CRN (585 pacientes, prevalencia del 37 %). En la cohorte de derivación, con prevalencia del 50 %, el VPP fue 0,83 y el VPN 0,85. Como todo valor predictivo, se desplazan con la prevalencia del ámbito donde se aplique: en atención primaria el VPP cae marcadamente.",
+    src:"Newsome PN, Sasso M, Deeks JJ, et al. FibroScan-AST (FAST) score for the non-invasive identification of patients with non-alcoholic steatohepatitis with significant activity and fibrosis. Lancet Gastroenterol Hepatol 2020;5:362–373. · Woreta TA, et al. PLOS ONE 2022."
+  },
+
+  // ---------------------------------------------------------------- Agile 3+
+  {
+    id:"agile3", group:"Elastografía", name:"Agile 3+",
+    title:"Agile 3+",
+    sub:"Mejora el valor predictivo positivo de la rigidez hepática para fibrosis avanzada agregando plaquetas, cociente AST/ALT, sexo, diabetes y edad. Reduce la zona indeterminada frente al FIB-4 o a la rigidez aislada.",
+    fields:[
+      N("lsm","Rigidez hepática","kPa",10.0,"0.1"),
+      N("ast","AST (TGO)","U/L",48,"1"),
+      N("alt","ALT (TGP)","U/L",55,"1"),
+      N("plq","Plaquetas","×10⁹/L",185,"1"),
+      S("sexo","Sexo",0,[{v:0,label:"Femenino"},{v:1,label:"Masculino"}]),
+      S("dm","Diabetes tipo 2",0,YN),
+      N("edad","Edad","años",52,"1")
+    ],
+    compute:function(v){
+      var aar = v.ast / v.alt;
+      var lg = -3.92368 + 2.29714 * ln(v.lsm) - 0.00902 * v.plq - 0.98633 / aar
+               + 1.08636 * v.dm - 0.38581 * v.sexo + 0.03018 * v.edad;
+      var pr = 1 / (1 + exp(-lg));
+      return {
+        value:f(pr,3), unit:"",
+        band: pr < 0.451 ? 0 : (pr < 0.679 ? 1 : 2),
+        detail:[
+          {l:"Predictor lineal (logit)", r:f(lg,3)},
+          {l:"Cociente AST/ALT", r:f(aar,2)},
+          {l:"ln (rigidez hepática)", r:f(ln(v.lsm),3)},
+          {l:"Aporte de la edad", r:f(0.03018 * v.edad, 3)}
+        ]
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Zona","Agile 3+"],
+    bands:[
+      ["Descarta fibrosis avanzada (F ≥ 3)","< 0,451"],
+      ["Indeterminada","0,451 – 0,679"],
+      ["Sugiere fibrosis avanzada","≥ 0,679"]
+    ],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Cohorte","AUROC","VPP","VPN"],
+    est:[
+      ["Validación interna","0,90","0,81","0,91"],
+      ["Validación externa (NASH CRN)","0,86","0,73","0,88"],
+      ["Validación externa (NAFLD francesa)","0,87","0,79","0,87"]
+    ],
+    estNote:"Los resultados indeterminados fueron del 16 al 18 % según la cohorte, bastante menos que con FIB-4 o con rigidez aislada. El modelo se derivó en pacientes con sospecha de enfermedad hepática esteatósica atendidos en consultorios de hepatología, de modo que su rendimiento en atención primaria no está establecido.",
+    src:"Sanyal AJ, Foucquier J, Younossi ZM, et al. Enhanced diagnosis of advanced fibrosis and cirrhosis in individuals with NAFLD using FibroScan-based Agile scores. J Hepatol 2023;78:247–259."
+  },
+
+  // ---------------------------------------------------------------- Agile 4
+  {
+    id:"agile4", group:"Elastografía", name:"Agile 4",
+    title:"Agile 4",
+    sub:"La variante del mismo trabajo dirigida a confirmar cirrosis. Usa las mismas variables que el Agile 3+ salvo la edad, y transforma la rigidez con la raíz cuadrada inversa en lugar del logaritmo.",
+    fields:[
+      N("lsm","Rigidez hepática","kPa",18.0,"0.1"),
+      N("ast","AST (TGO)","U/L",55,"1"),
+      N("alt","ALT (TGP)","U/L",48,"1"),
+      N("plq","Plaquetas","×10⁹/L",150,"1"),
+      S("sexo","Sexo",0,[{v:0,label:"Femenino"},{v:1,label:"Masculino"}]),
+      S("dm","Diabetes tipo 2",1,YN)
+    ],
+    compute:function(v){
+      var aar = v.ast / v.alt;
+      var lg = 7.50139 - 15.42498 / Math.sqrt(v.lsm) - 0.01378 * v.plq - 1.41149 / aar
+               - 0.53281 * v.sexo + 0.41741 * v.dm;
+      var pr = 1 / (1 + exp(-lg));
+      return {
+        value:f(pr,3), unit:"",
+        band: pr < 0.251 ? 0 : (pr < 0.565 ? 1 : 2),
+        detail:[
+          {l:"Predictor lineal (logit)", r:f(lg,3)},
+          {l:"Cociente AST/ALT", r:f(aar,2)},
+          {l:"1 / √(rigidez hepática)", r:f(1 / Math.sqrt(v.lsm), 4)},
+          {l:"Aporte de las plaquetas", r:f(-0.01378 * v.plq, 3)}
+        ]
+      };
+    },
+    bandsTitle:"Clasificación",
+    bandsCols:["Zona","Agile 4"],
+    bands:[
+      ["Descarta cirrosis (F4)","< 0,251"],
+      ["Indeterminada","0,251 – 0,565"],
+      ["Sugiere cirrosis","≥ 0,565"]
+    ],
+    estTitle:"Estimaciones publicadas",
+    estCols:["Cohorte","AUROC","VPP","VPN"],
+    est:[
+      ["Validación interna","0,89","0,64","0,96"],
+      ["Validación externa (NASH CRN)","0,93","0,72","0,98"],
+      ["Validación externa (NAFLD francesa)","0,89","0,68","0,96"]
+    ],
+    estNote:"El valor predictivo negativo alto y estable es lo más útil de este puntaje: por debajo del corte inferior la cirrosis queda razonablemente descartada. Los indeterminados fueron del 11 al 16 %. Conviene cotejar el resultado con el que informa el software del propio equipo, que es la implementación de referencia del fabricante.",
+    src:"Sanyal AJ, Foucquier J, Younossi ZM, et al. J Hepatol 2023;78:247–259."
   },
 
   // ---------------------------------------------------------------- GALAD
